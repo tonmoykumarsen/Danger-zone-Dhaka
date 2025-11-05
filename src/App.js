@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import MapView from "./MapView";
+import { useEffect, useState } from "react";
 import "./App.css";
+import MapView from "./MapView";
 
 const App = () => {
   const [zones, setZones] = useState([]);

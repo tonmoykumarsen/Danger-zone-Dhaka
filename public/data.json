@@ -1,131 +1,138 @@
 {
-  "area": "Dhaka",
-  "zones": [
-    {
-      "main_area": "Dhanmondi",
-      "sub_area": "Road 27",
-      "type": "Murder",
-      "quantity": 5,
-      "location": [23.7455, 90.3743]
-    },
-    {
-      "main_area": "Dhanmondi",
-      "sub_area": "Road 7A",
-      "type": "Nirzaton",
-      "quantity": 3,
-      "location": [23.7433, 90.3749]
-    },
-    {
-      "main_area": "Dhanmondi",
-      "sub_area": "Kalabagan",
-      "type": "Chintai",
-      "quantity": 2,
-      "location": [23.7401, 90.3835]
-    },
-    {
-      "main_area": "Mohammadpur",
-      "sub_area": "Lalmatia",
-      "type": "Khun",
-      "quantity": 6,
-      "location": [23.7515, 90.367]
-    },
-    {
-      "main_area": "Mohammadpur",
-      "sub_area": "Nurjahan Road",
-      "type": "Dhorson",
-      "quantity": 3,
-      "location": [23.7555, 90.3692]
-    },
-    {
-      "main_area": "Mohammadpur",
-      "sub_area": "Iqbal Road",
-      "type": "Others",
-      "quantity": 1,
-      "location": [23.757, 90.3662]
-    },
-    {
-      "main_area": "Mirpur",
-      "sub_area": "Mirpur-1",
-      "type": "Murder",
-      "quantity": 8,
-      "location": [23.7941, 90.3665]
-    },
-    {
-      "main_area": "Mirpur",
-      "sub_area": "Kazipara",
-      "type": "Nirzaton",
-      "quantity": 4,
-      "location": [23.8041, 90.3701]
-    },
-    {
-      "main_area": "Mirpur",
-      "sub_area": "Pallabi",
-      "type": "Others",
-      "quantity": 2,
-      "location": [23.8161, 90.3661]
-    },
-    {
-      "main_area": "Keraniganj",
-      "sub_area": "Hasnabad",
-      "type": "Khun",
-      "quantity": 4,
-      "location": [23.683, 90.3515]
-    },
-    {
-      "main_area": "Keraniganj",
-      "sub_area": "Kalatia",
-      "type": "Dhorson",
-      "quantity": 3,
-      "location": [23.6922, 90.338]
-    },
-    {
-      "main_area": "Keraniganj",
-      "sub_area": "Jinjira",
-      "type": "Others",
-      "quantity": 1,
-      "location": [23.7021, 90.3571]
-    },
-    {
-      "main_area": "Paltan",
-      "sub_area": "VIP Road",
-      "type": "Nirzaton",
-      "quantity": 3,
-      "location": [23.7368, 90.4112]
-    },
-    {
-      "main_area": "Paltan",
-      "sub_area": "Press Club",
-      "type": "Murder",
-      "quantity": 4,
-      "location": [23.736, 90.4089]
-    },
-    {
-      "main_area": "Paltan",
-      "sub_area": "Bangabandhu Stadium",
-      "type": "Others",
-      "quantity": 1,
-      "location": [23.7351, 90.4132]
-    },
-    {
-      "main_area": "Shahbagh",
-      "sub_area": "Science Lab",
-      "type": "Nirzaton",
-      "quantity": 3,
-      "location": [23.7399, 90.3903]
-    },
-    {
-      "main_area": "Shahbagh",
-      "sub_area": "Elephant Road",
-      "type": "Khun",
-      "quantity": 5,
-      "location": [23.7385, 90.3925]
-    },
-    {
-      "main_area": "Shahbagh",
-      "sub_area": "TSC Area",
-      "type": "Chintai",
-      "quantity": 2,
-      "location": [23.7372, 90.3961]
-    }
-  ]
+	"area": "Dhaka",
+	"zones": [
+		{
+			"main_area": "Dhanmondi",
+			"sub_area": "Road 27",
+			"type": "Murder",
+			"quantity": 5,
+			"location": [23.7455, 90.3743]
+		},
+		{
+			"main_area": "Dhanmondi",
+			"sub_area": "Road 7A",
+			"type": "Nirzaton",
+			"quantity": 3,
+			"location": [23.7433, 90.3749]
+		},
+		{
+			"main_area": "Dhanmondi",
+			"sub_area": "Kalabagan",
+			"type": "Chintai",
+			"quantity": 2,
+			"location": [23.7401, 90.3835]
+		},
+		{
+			"main_area": "Mohammadpur",
+			"sub_area": "Lalmatia",
+			"type": "Khun",
+			"quantity": 6,
+			"location": [23.7515, 90.367]
+		},
+		{
+			"main_area": "Mohammadpur",
+			"sub_area": "Nurjahan Road",
+			"type": "Dhorson",
+			"quantity": 3,
+			"location": [23.7555, 90.3692]
+		},
+		{
+			"main_area": "Mohammadpur",
+			"sub_area": "Iqbal Road",
+			"type": "Others",
+			"quantity": 1,
+			"location": [23.757, 90.3662]
+		},
+		{
+			"main_area": "Mirpur",
+			"sub_area": "Mirpur-1",
+			"type": "Murder",
+			"quantity": 8,
+			"location": [23.7941, 90.3665]
+		},
+		{
+			"main_area": "Mirpur",
+			"sub_area": "Kazipara",
+			"type": "Nirzaton",
+			"quantity": 4,
+			"location": [23.8041, 90.3701]
+		},
+		{
+			"main_area": "Mirpur",
+			"sub_area": "Pallabi",
+			"type": "Others",
+			"quantity": 2,
+			"location": [23.8161, 90.3661]
+		},
+		{
+			"main_area": "Keraniganj",
+			"sub_area": "Hasnabad",
+			"type": "Khun",
+			"quantity": 4,
+			"location": [23.683, 90.3515]
+		},
+		{
+			"main_area": "Keraniganj",
+			"sub_area": "Kalatia",
+			"type": "Dhorson",
+			"quantity": 3,
+			"location": [23.6922, 90.338]
+		},
+		{
+			"main_area": "Keraniganj",
+			"sub_area": "Jinjira",
+			"type": "Others",
+			"quantity": 1,
+			"location": [23.7021, 90.3571]
+		},
+		{
+			"main_area": "Paltan",
+			"sub_area": "VIP Road",
+			"type": "Nirzaton",
+			"quantity": 3,
+			"location": [23.7368, 90.4112]
+		},
+		{
+			"main_area": "Paltan",
+			"sub_area": "Press Club",
+			"type": "Murder",
+			"quantity": 4,
+			"location": [23.736, 90.4089]
+		},
+		{
+			"main_area": "Paltan",
+			"sub_area": "Bangabandhu Stadium",
+			"type": "Others",
+			"quantity": 1,
+			"location": [23.7351, 90.4132]
+		},
+		{
+			"main_area": "Shahbagh",
+			"sub_area": "Science Lab",
+			"type": "Nirzaton",
+			"quantity": 3,
+			"location": [23.7399, 90.3903]
+		},
+		{
+			"main_area": "Shahbagh",
+			"sub_area": "Elephant Road",
+			"type": "Khun",
+			"quantity": 5,
+			"location": [23.7385, 90.3925]
+		},
+		{
+			"main_area": "Shahbagh",
+			"sub_area": "TSC Area",
+			"type": "Chintai",
+			"quantity": 2,
+			"location": [23.7372, 90.3961]
+		},
+		{
+			"main_area": "Gulistan",
+			"sub_area": "ZeroPoint",
+			"type": "Chintai",
+			"quantity": 2,
+			"location": [23.7372, 90.3961]
+		}
+	]
 }
