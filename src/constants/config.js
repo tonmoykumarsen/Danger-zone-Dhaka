@@ -99,12 +99,16 @@ export const RISK_THRESHOLDS = [
   { min: 0, label: "স্বাভাবিক", color: "#3b82f6", emoji: "ℹ️" },
 ];
 
+// export const MAP_TILES = {
+//   street: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+//   satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+//   dark: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+// };
 export const MAP_TILES = {
   street: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-  dark: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+  dark: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" // ✅ replaced
 };
-
 export const STATS_CONFIG = {
   totalCases: { label: "মোট ঘটনা", color: "#60a5fa" },
   murders: { label: "হত্যা", color: "#ff2d2d" },
