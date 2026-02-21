@@ -1,74 +1,103 @@
-import { useEffect, useState } from "react";
-import "./App.css";
-import MapView from "./MapView";
+import React from "react";
+import { useZones } from "./hooks/useZones";
+import Header from "./components/Header/Header";
+import Sidebar from "./components/Sidebar/Sidebar";
+import CrimeMap from "./components/Map/CrimeMap";
+import "./styles/global.css";
 
-const App = () => {
-  const [zones, setZones] = useState([]);
-  const [filteredZones, setFilteredZones] = useState([]);
-  const [filterType, setFilterType] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
+function App() {
+  const {
+    filteredZones,
+    statistics,
+    areaName,
+    filter,
+    setFilter,
+    search,
+    setSearch,
+    activeZoneIndex,
+    setActiveZone,
+    clearActiveZone,
+    hoveredZone,
+    setHovered,
+    clearHovered,
+    sortBy,
+    sortOrder,
+    toggleSort
+  } = useZones();
 
-  useEffect(() => {
-    fetch("/data.json")
-      .then((res) => res.json())
-      .then((json) => {
-        setZones(json.zones);
-        setFilteredZones(json.zones);
-      })
-      .catch((err) => console.error("Error loading data:", err));
-  }, []);
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    clearActiveZone();
+  };
 
-  useEffect(() => {
-    let data = [...zones];
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    clearActiveZone();
+  };
 
-    if (filterType !== "All") {
-      data = data.filter((z) => z.type === filterType);
-    }
+  const handleZoneClick = (index) => {
+    setActiveZone(index);
+  };
 
-    if (searchQuery.trim() !== "") {
-      data = data.filter(
-        (z) =>
-          z.main_area.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          z.sub_area.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          z.type.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
+  const handleZoneHover = (zone) => {
+    setHovered(zone);
+  };
 
-    setFilteredZones(data);
-  }, [zones, filterType, searchQuery]);
+  const activeZone = activeZoneIndex !== null ? filteredZones[activeZoneIndex] : null;
 
   return (
     <div className="app">
-      <h1 style={{ textAlign: "center" }}>🧭 DangerZone - Dhaka Map</h1>
+      <Header
+        search={search}
+        onSearchChange={handleSearchChange}
+        currentFilter={filter}
+        onFilterChange={handleFilterChange}
+        areaName={areaName}
+      />
 
-      <div className="filter-bar">
-        <div className="filter-item">
-          <label>Filter by Type:</label>
-          <select onChange={(e) => setFilterType(e.target.value)}>
-            <option>All</option>
-            <option>Khun</option>
-            <option>Murder</option>
-            <option>Dhorson</option>
-            <option>Nirzaton</option>
-            <option>Chintai</option>
-            <option>Others</option>
-          </select>
-        </div>
+      <div className="main-container">
+        <Sidebar
+          zones={filteredZones}
+          activeZoneIndex={activeZoneIndex}
+          onZoneClick={handleZoneClick}
+          onZoneHover={handleZoneHover}
+          statistics={statistics}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={toggleSort}
+        />
 
-        <div className="filter-item">
-          <label>Search Area or Type:</label>
-          <input
-            type="text"
-            placeholder="e.g. Mirpur or Khun"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+        <div className="map-container">
+          <CrimeMap
+            zones={filteredZones}
+            activeZone={activeZoneIndex}
+            hoveredZone={hoveredZone}
+            onZoneHover={handleZoneHover}
+            onZoneClick={handleZoneClick}
           />
+          
+          {activeZone && (
+            <div className="active-zone-indicator">
+              <span className="indicator-icon" style={{ color: activeZone.typeConfig.color }}>📍</span>
+              <span className="indicator-text">
+                <strong>{activeZone.main_area}</strong>
+              </span>
+              <span className="indicator-badge" style={{
+                backgroundColor: `${activeZone.typeConfig.color}22`,
+                color: activeZone.typeConfig.color,
+                borderColor: `${activeZone.typeConfig.color}44`
+              }}>
+                {activeZone.typeConfig.icon} {activeZone.typeConfig.badge}
+              </span>
+              <span className="indicator-cases">
+                {activeZone.quantity} টি মামলা
+              </span>
+            </div>
+          )}
         </div>
       </div>
-
-      <MapView zones={filteredZones} />
     </div>
   );
-};
+}
 
 export default App;
