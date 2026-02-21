@@ -19,7 +19,7 @@ function App() {
     clearActiveZone,
     hoveredZone,
     setHovered,
-    clearHovered,
+    // clearHovered,
     sortBy,
     sortOrder,
     toggleSort

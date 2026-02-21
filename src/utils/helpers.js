@@ -1,4 +1,4 @@
-import { TYPE_CONFIG, RISK_THRESHOLDS, BENGALI_MONTHS } from "../constants/config";
+// import { TYPE_CONFIG, RISK_THRESHOLDS, BENGALI_MONTHS } from "../constants/config";
 
 export const getTypeConfig = (crimeType) => {
   // Try exact match first

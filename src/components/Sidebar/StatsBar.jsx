@@ -1,6 +1,6 @@
 import React from "react";
 import { getStatistics } from "../../utils/helpers";
-import { STATS_CONFIG } from "../../constants/config";
+// import { STATS_CONFIG } from "../../constants/config";
 
 const StatItem = ({ label, value, color }) => (
   <div style={{
