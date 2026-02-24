@@ -26,11 +26,11 @@ const Header = ({
     quantityRange: { min: 0, max: 1000 },
     confidenceRange: { min: 0, max: 1 }
   },
-  onAdvancedFilterChange = () => {}, // Default empty function to prevent errors
+  onAdvancedFilterChange = () => {},
   locations = [],
   activeFilterCount = 0
 }) => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage(); // Removed 'language' since it's not used
   const [isMobile, setIsMobile] = useState(false);
   const [showTimeFilters, setShowTimeFilters] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -334,7 +334,7 @@ const Header = ({
         </div>
       )}
 
-      {/* Advanced Filters Panel - Positioned absolutely above everything */}
+      {/* Advanced Filters Panel */}
       {showAdvancedFilters && (
         <div style={{
           position: 'fixed',
@@ -363,7 +363,7 @@ const Header = ({
         </div>
       )}
 
-      {/* Active Filters Summary (when advanced filters are active but panel closed) */}
+      {/* Active Filters Summary */}
       {!showAdvancedFilters && activeFilterCount > 0 && (
         <div style={{
           display: "flex",
@@ -460,7 +460,7 @@ const Header = ({
             );
           })}
 
-          {/* Location Chips (show first 3) */}
+          {/* Location Chips */}
           {advancedFilters?.locations?.slice(0, 3).map(location => (
             <span key={location} style={{
               padding: "4px 8px",

@@ -3,7 +3,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { TIME_PERIODS } from "../../constants/config";
 
 const TimePeriodDropdown = ({ currentFilter, onFilterChange }) => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 

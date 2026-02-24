@@ -4,7 +4,7 @@ import { formatBengaliDate } from "../../utils/helpers";
 import "./ZoneCard.css";
 
 const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage(); // Only use language, not t
   const [hovered, setHovered] = useState(false);
   const typeConfig = zone.typeConfig;
   const risk = zone.risk;

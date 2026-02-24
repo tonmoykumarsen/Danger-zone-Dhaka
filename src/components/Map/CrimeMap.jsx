@@ -2,8 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { BANGLADESH_CENTER, DEFAULT_ZOOM, TYPE_CONFIG } from "../../constants/config";
-import { formatBengaliDate, getRiskLevel } from "../../utils/helpers";
+import { formatBengaliDate } from "../../utils/helpers"; // Removed getRiskLevel
 import "../../styles/map.css";
+
+// Rest of the file remains the same...
+// (Keep all the existing code, just remove the unused import)
 
 // Fix for default markers
 delete L.Icon.Default.prototype._getIconUrl;

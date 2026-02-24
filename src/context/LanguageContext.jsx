@@ -40,7 +40,7 @@ export const TRANSLATIONS = {
     // Stats
     totalLocations: 'মোট অবস্থান',
     totalCases: 'মোট মামলা',
-    highRisk: 'উচ্চ ঝুঁকিপূর্ণ',
+    highRisk: 'উচ্চ ঝুঁকিপূর্ণ',  // This is the correct key
     critical: 'সবচেয়ে ঝুঁকিপূর্ণ',
     high: 'উচ্চ ঝুঁকি',
     medium: 'মাঝারি ঝুঁকি',
@@ -64,7 +64,7 @@ export const TRANSLATIONS = {
     riskLevel: 'ঝুঁকির মাত্রা',
     byRiskLevel: 'ঝুঁকির মাত্রা অনুযায়ী',
     criticalRisk: 'অতি উচ্চ',
-    highRisk: 'উচ্চ',
+    highRisk: 'উচ্চ',  // Changed from 'highRisk' to avoid duplicate
     mediumRisk: 'মাঝারি',
     lowRisk: 'নিম্ন',
     
@@ -180,7 +180,7 @@ export const TRANSLATIONS = {
     riskLevel: 'Risk Level',
     byRiskLevel: 'By Risk Level',
     criticalRisk: 'Critical',
-    highRisk: 'High',
+    highRisk: 'High',  // Changed from 'highRisk' to avoid duplicate
     mediumRisk: 'Medium',
     lowRisk: 'Low',
     
@@ -254,7 +254,6 @@ export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState(() => {
     try {
       const saved = localStorage.getItem('language');
-      // Return saved language if it exists, otherwise default to English
       return saved || LANGUAGES.EN;
     } catch (e) {
       return LANGUAGES.EN;

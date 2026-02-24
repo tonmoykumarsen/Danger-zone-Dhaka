@@ -16,7 +16,7 @@ const AdvancedFilterPanel = ({
   onClose,
   locations = [] 
 }) => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState('crime');
 
   const handleCrimeTypeToggle = (type) => {

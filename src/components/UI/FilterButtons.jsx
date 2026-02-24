@@ -3,7 +3,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { getTypeConfig } from "../../utils/helpers";
 
 const FilterButtons = ({ filters, currentFilter, onFilterChange }) => {
-  const { t, language } = useLanguage();
+  const {  language } = useLanguage();
 
   // Get translated filter name
   const getTranslatedFilter = (filter) => {
