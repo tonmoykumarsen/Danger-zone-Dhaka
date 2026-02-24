@@ -16,7 +16,7 @@ const Sidebar = ({
   onClose 
 }) => {
   const [viewMode, setViewMode] = useState('district');
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  // const [selectedDistrict, setSelectedDistrict] = useState(null); // Commented out - not used
   const [expandedDistrict, setExpandedDistrict] = useState(null);
   const [hoveredDistrict, setHoveredDistrict] = useState(null);
   const [hoveredLocation, setHoveredLocation] = useState(null);
@@ -151,7 +151,7 @@ const Sidebar = ({
     // Delay collapse to allow moving to expanded content
     expandTimeoutRef.current = setTimeout(() => {
       setExpandedDistrict(null);
-    }, 300); // 300ms delay
+    }, 300);
     
     handleLocationLeave();
   };
@@ -192,7 +192,6 @@ const Sidebar = ({
 
   // Handle mouse leave from location popup
   const handleLocationLeave = () => {
-    // Set timeout to close popup after 200ms (allows moving to popup)
     hoverTimeoutRef.current = setTimeout(() => {
       setHoveredLocation(null);
     }, 200);
@@ -331,7 +330,7 @@ const Sidebar = ({
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px', position: 'relative' }}>
-        {/* Hover History Popup - Shows when hovering over any location */}
+        {/* Hover History Popup */}
         {hoveredLocation && locationHistory[hoveredLocation] && (
           <div
             ref={popupRef}
@@ -435,7 +434,7 @@ const Sidebar = ({
           </div>
         )}
 
-        {/* DISTRICT VIEW - Now with hover expand/collapse */}
+        {/* DISTRICT VIEW */}
         {viewMode === 'district' && (
           <div>
             <div style={{
@@ -474,16 +473,13 @@ const Sidebar = ({
                       cursor: 'pointer'
                     }}
                   >
-                    {/* District Header - Click to select */}
-                    <div
-                      onClick={() => setSelectedDistrict(district)}
-                      style={{
-                        padding: '14px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}
-                    >
+                    {/* District Header */}
+                    <div style={{
+                      padding: '14px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
                       <div style={{ flex: 1 }}>
                         <div style={{
                           display: 'flex',
@@ -519,10 +515,9 @@ const Sidebar = ({
                           <span>টি মামলা</span>
                         </div>
                       </div>
-                      {/* + button removed - now hover controlled */}
                     </div>
 
-                    {/* Expanded Details - shown on hover */}
+                    {/* Expanded Details */}
                     {isExpanded && (
                       <div 
                         onMouseEnter={handleExpandedContentMouseEnter}
@@ -688,7 +683,6 @@ const Sidebar = ({
                       handleLocationHover(district, e);
                     }}
                     onMouseLeave={handleLocationLeave}
-                    onClick={() => setSelectedDistrict(district)}
                     style={{
                       padding: '14px',
                       marginBottom: '10px',
@@ -807,14 +801,6 @@ const Sidebar = ({
                               borderLeft: `4px solid ${crime.typeConfig.color}`,
                               transition: 'all 0.2s',
                               border: `1px solid transparent`
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#13131f';
-                              e.currentTarget.style.borderColor = crime.typeConfig.color + '44';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = '#0a0a14';
-                              e.currentTarget.style.borderColor = 'transparent';
                             }}
                           >
                             <div style={{ flex: 1 }}>
