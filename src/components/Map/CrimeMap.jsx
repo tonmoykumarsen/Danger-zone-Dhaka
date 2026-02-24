@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { BANGLADESH_CENTER, DEFAULT_ZOOM, MAP_TILES, TYPE_CONFIG } from "../../constants/config";
+import { BANGLADESH_CENTER, DEFAULT_ZOOM, TYPE_CONFIG } from "../../constants/config";
 import { formatBengaliDate } from "../../utils/helpers";
 import "../../styles/map.css";
 
+// Fix for default markers
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -12,6 +13,25 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+// Free tile layers that don't require authentication
+const TILE_LAYERS = {
+  // OpenStreetMap standard tiles (completely free, no API key needed)
+  osm: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  
+  // CartoDB dark theme (free, no authentication)
+  cartoDark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+  
+  // CartoDB light theme (free, no authentication)
+  cartoLight: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  
+  // OpenTopoMap (free, no authentication)
+  topo: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+  
+  // Stamen Terrain (free, no authentication)
+  stamen: "https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg"
+};
+
+// Custom marker icons for different crime types
 const createCustomIcon = (typeConfig, quantity, isHovered = false) => {
   const size = Math.max(24, 18 + Math.sqrt(quantity) * 4);
   
@@ -30,6 +50,7 @@ const createCustomIcon = (typeConfig, quantity, isHovered = false) => {
   });
 };
 
+// Hover Modal Component
 const HoverModal = ({ zone, position }) => {
   if (!zone || !position) return null;
 
@@ -108,6 +129,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
   const markersRef = useRef({});
   const [hoverModal, setHoverModal] = useState({ visible: false, zone: null, position: null });
 
+  // Initialize map
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
@@ -119,11 +141,15 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
       markerZoomAnimation: true,
     });
 
-    L.tileLayer(MAP_TILES.dark, {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    // Use CartoDB dark theme (free, no authentication required)
+    L.tileLayer(TILE_LAYERS.cartoDark, {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
       maxZoom: 19,
+      subdomains: 'abcd',
+      noWrap: true
     }).addTo(mapInstanceRef.current);
 
+    // Add scale control
     L.control.scale({ imperial: false, metric: true }).addTo(mapInstanceRef.current);
 
     return () => {
@@ -134,16 +160,20 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
     };
   }, []);
 
+  // Update markers when zones change
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
+    // Clear existing markers
     Object.values(markersRef.current).forEach(marker => marker.remove());
     markersRef.current = {};
 
+    // Add new markers
     zones.forEach((zone, index) => {
       const typeConfig = zone.typeConfig;
       const risk = zone.risk;
 
+      // Create custom icon
       const icon = createCustomIcon(typeConfig, zone.quantity);
 
       const marker = L.marker(zone.location, { 
@@ -152,12 +182,15 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
         zIndexOffset: 1000
       }).addTo(mapInstanceRef.current);
 
+      // Store marker reference
       markersRef.current[index] = marker;
 
+      // Add hover events
       marker.on('mouseover', () => {
         onZoneHover(zone);
         marker.setZIndexOffset(2000);
         
+        // Calculate position for hover modal
         const point = mapInstanceRef.current.latLngToContainerPoint(zone.location);
         setHoverModal({
           visible: true,
@@ -177,6 +210,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
         marker.openPopup();
       });
 
+      // Create detailed popup content
       const popupContent = `
         <div class="crime-popup">
           <div class="popup-header" style="border-left-color: ${typeConfig.color}">
@@ -246,12 +280,14 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
       });
     });
 
+    // Fit bounds to show all markers
     if (zones.length > 0) {
       const bounds = L.latLngBounds(zones.map(z => z.location));
       mapInstanceRef.current.fitBounds(bounds, { padding: [60, 60], animate: true });
     }
   }, [zones, onZoneHover, onZoneClick]);
 
+  // Handle active zone
   useEffect(() => {
     if (activeZone !== null && markersRef.current[activeZone]) {
       markersRef.current[activeZone].openPopup();
@@ -261,6 +297,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
     }
   }, [activeZone, zones]);
 
+  // Handle hovered zone
   useEffect(() => {
     if (hoveredZone !== null && markersRef.current[hoveredZone]) {
       markersRef.current[hoveredZone].setZIndexOffset(2000);
@@ -271,8 +308,10 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
       
+      {/* Hover Modal */}
       {hoverModal.visible && <HoverModal zone={hoverModal.zone} position={hoverModal.position} />}
       
+      {/* Map Legend */}
       <div className="map-legend">
         <h4>অপরাধের ধরন</h4>
         <div className="legend-items">
@@ -297,6 +336,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
         </div>
       </div>
 
+      {/* Map Controls */}
       <div className="map-controls">
         <button className="map-control-btn" onClick={() => mapInstanceRef.current?.setView(BANGLADESH_CENTER, DEFAULT_ZOOM)} title="পুনরায় সেট করুন">
           <span className="btn-icon">🏠</span>
@@ -317,6 +357,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
         </button>
       </div>
 
+      {/* Crime Stats Overlay */}
       <div className="stats-overlay">
         <div className="stats-item">
           <span className="stats-label">মোট অবস্থান</span>
