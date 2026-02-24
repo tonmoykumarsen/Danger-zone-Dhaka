@@ -18,6 +18,54 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
     onHover?.(null);
   };
 
+  const getRiskBadgeStyle = () => {
+    const baseStyle = {
+      padding: "4px 10px",
+      borderRadius: "20px",
+      fontSize: "10px",
+      fontWeight: 700,
+      letterSpacing: "0.04em",
+      border: "1px solid transparent"
+    };
+
+    if (risk.label === "সবচেয়ে ঝুঁকিপূর্ণ") {
+      return {
+        ...baseStyle,
+        background: "#ff2d2d22",
+        color: "#ff2d2d",
+        borderColor: "#ff2d2d44"
+      };
+    } else if (risk.label === "উচ্চ ঝুঁকি") {
+      return {
+        ...baseStyle,
+        background: "#ff6b1a22",
+        color: "#ff6b1a",
+        borderColor: "#ff6b1a44"
+      };
+    } else if (risk.label === "মাঝারি ঝুঁকি") {
+      return {
+        ...baseStyle,
+        background: "#f0a50022",
+        color: "#f0a500",
+        borderColor: "#f0a50044"
+      };
+    } else if (risk.label === "নিম্ন ঝুঁকি") {
+      return {
+        ...baseStyle,
+        background: "#22c55e22",
+        color: "#22c55e",
+        borderColor: "#22c55e44"
+      };
+    } else {
+      return {
+        ...baseStyle,
+        background: "#3b82f622",
+        color: "#3b82f6",
+        borderColor: "#3b82f644"
+      };
+    }
+  };
+
   return (
     <div
       onClick={onClick}
@@ -50,20 +98,24 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
           {typeConfig.icon} {typeConfig.badge}
         </span>
         
-        <span className="risk-badge" style={{ 
-          backgroundColor: `${risk.color}18`,
-          color: risk.color,
-          borderColor: `${risk.color}33`
-        }}>
+        <span className="risk-badge" style={getRiskBadgeStyle()}>
           {risk.emoji} {risk.label}
         </span>
+      </div>
+
+      <div className="zone-meta">
+        <span>{zone.period}</span>
+        <span>•</span>
+        <span>{(zone.confidence * 100).toFixed(1)}%</span>
+        <span>•</span>
+        <span>{zone.date}</span>
       </div>
 
       {isHighlighted && (
         <div className="zone-details">
           <div className="detail-row">
             <span>📅 {formatBengaliDate(zone.date)}</span>
-            <span>🎯 {(zone.confidence * 100).toFixed(1)}%</span>
+            <span>⏰ {zone.period}</span>
           </div>
           <div className="detail-row">
             <span>📍 অক্ষাংশ: {zone.location[0].toFixed(4)}</span>

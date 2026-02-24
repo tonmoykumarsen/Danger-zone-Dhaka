@@ -1,6 +1,5 @@
 import React from "react";
 import { getStatistics } from "../../utils/helpers";
-// import { STATS_CONFIG } from "../../constants/config";
 
 const StatItem = ({ label, value, color }) => (
   <div style={{
@@ -31,6 +30,54 @@ const StatItem = ({ label, value, color }) => (
   </div>
 );
 
+const RiskLevelIndicator = ({ riskCounts }) => {
+  const riskItems = [
+    { label: "সবচেয়ে ঝুঁকিপূর্ণ", value: riskCounts.critical, color: "#ff2d2d", emoji: "🔥" },
+    { label: "উচ্চ ঝুঁকি", value: riskCounts.high, color: "#ff6b1a", emoji: "⚠️" },
+    { label: "মাঝারি ঝুঁকি", value: riskCounts.medium, color: "#f0a500", emoji: "⚡" },
+    { label: "নিম্ন ঝুঁকি", value: riskCounts.low, color: "#22c55e", emoji: "✅" },
+    { label: "স্বাভাবিক", value: riskCounts.normal, color: "#3b82f6", emoji: "ℹ️" }
+  ];
+
+  return (
+    <div style={{
+      background: "#0f0f1a",
+      borderRadius: 7,
+      padding: "10px",
+      marginTop: "10px"
+    }}>
+      <div style={{
+        fontSize: 9,
+        color: "#94a3b8",
+        textTransform: "uppercase",
+        letterSpacing: "0.1em",
+        marginBottom: "8px",
+        display: "flex",
+        alignItems: "center",
+        gap: "4px"
+      }}>
+        <span>⚠️</span>
+        <span>ঝুঁকির মাত্রা অনুযায়ী</span>
+      </div>
+      {riskItems.map(item => (
+        <div key={item.label} style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "6px",
+          fontSize: "10px"
+        }}>
+          <span style={{ color: item.color, display: "flex", alignItems: "center", gap: "4px" }}>
+            <span>{item.emoji}</span>
+            <span>{item.label}</span>
+          </span>
+          <span style={{ color: "#f1f5f9", fontWeight: 600 }}>{item.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const HotspotIndicator = ({ hotspot }) => {
   if (!hotspot) return null;
 
@@ -39,30 +86,52 @@ const HotspotIndicator = ({ hotspot }) => {
       background: "#1a000a",
       border: "1px solid #ff2d2d2a",
       borderRadius: 7,
-      padding: "6px 10px",
-      fontSize: 11,
-      color: "#94a3b8",
-      display: "flex",
-      alignItems: "center",
-      gap: 6
+      padding: "10px",
+      marginTop: "10px"
     }}>
-      <span style={{ fontSize: 13 }}>🔥</span>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        সবচেয়ে ঝুঁকিপূর্ণ: <strong style={{ color: "#f1f5f9" }}>
-          {hotspot.main_area}
-        </strong>
-      </span>
-      <span style={{
-        background: "#ff2d2d22",
-        color: "#ff2d2d",
-        padding: "2px 7px",
-        borderRadius: 4,
-        fontWeight: 700,
-        fontSize: 10,
-        flexShrink: 0
+      <div style={{
+        fontSize: 9,
+        color: "#94a3b8",
+        textTransform: "uppercase",
+        letterSpacing: "0.1em",
+        marginBottom: "8px",
+        display: "flex",
+        alignItems: "center",
+        gap: "4px"
       }}>
-        {hotspot.quantity} টি মামলা
-      </span>
+        <span>🔥</span>
+        <span>সবচেয়ে ঝুঁকিপূর্ণ এলাকা</span>
+      </div>
+      
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }}>
+        <div>
+          <div style={{ fontSize: "13px", fontWeight: 600, color: "#f1f5f9" }}>
+            {hotspot.main_area}
+          </div>
+          <div style={{ fontSize: "10px", color: "#64748b" }}>
+            {hotspot.sub_area}
+          </div>
+          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "4px" }}>
+            {hotspot.period} • {hotspot.date}
+          </div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{
+            background: "#ff2d2d22",
+            color: "#ff2d2d",
+            padding: "4px 8px",
+            borderRadius: "4px",
+            fontSize: "14px",
+            fontWeight: 700
+          }}>
+            {hotspot.quantity}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -81,7 +150,7 @@ const StatsBar = ({ zones }) => {
   ];
 
   return (
-    <div style={{ marginBottom: 12 }}>
+    <div>
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(4,1fr)",
@@ -102,6 +171,8 @@ const StatsBar = ({ zones }) => {
           <StatItem key={item.label} {...item} />
         ))}
       </div>
+
+      <RiskLevelIndicator riskCounts={stats.riskCounts} />
       
       <HotspotIndicator hotspot={stats.hotspot} />
     </div>

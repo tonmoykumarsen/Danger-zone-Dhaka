@@ -71,6 +71,26 @@ export const TYPE_CONFIG = {
   },
 };
 
+export const TIME_PERIODS = [
+  { value: "সব সময়", label: "সব সময়", icon: "📅", color: "#60a5fa" },
+  { value: "সকাল", label: "সকাল (৬-১২টা)", icon: "🌅", color: "#fbbf24" },
+  { value: "দুপুর", label: "দুপুর (১২-৩টা)", icon: "☀️", color: "#f59e0b" },
+  { value: "বিকাল", label: "বিকাল (৩-৬টা)", icon: "🌆", color: "#f97316" },
+  { value: "সন্ধ্যা", label: "সন্ধ্যা (৬-৮টা)", icon: "🌇", color: "#8b5cf6" },
+  { value: "রাত", label: "রাত (৮-১২টা)", icon: "🌙", color: "#6366f1" },
+  { value: "মধ্যরাত", label: "মধ্যরাত (১২-৬টা)", icon: "🌃", color: "#4f46e5" },
+  { value: "ভোর", label: "ভোর (৪-৬টা)", icon: "🌄", color: "#fcd34d" },
+  { value: "অজানা", label: "অজানা", icon: "❓", color: "#94a3b8" }
+];
+
+export const RISK_LEVELS = {
+  "সবচেয়ে ঝুঁকিপূর্ণ": { threshold: 50, color: "#ff2d2d", emoji: "🔥", label: "সবচেয়ে ঝুঁকিপূর্ণ" },
+  "উচ্চ ঝুঁকি": { threshold: 20, color: "#ff6b1a", emoji: "⚠️", label: "উচ্চ ঝুঁকি" },
+  "মাঝারি ঝুঁকি": { threshold: 10, color: "#f0a500", emoji: "⚡", label: "মাঝারি ঝুঁকি" },
+  "নিম্ন ঝুঁকি": { threshold: 5, color: "#22c55e", emoji: "✅", label: "নিম্ন ঝুঁকি" },
+  "স্বাভাবিক": { threshold: 0, color: "#3b82f6", emoji: "ℹ️", label: "স্বাভাবিক" }
+};
+
 export const BENGALI_MONTHS = {
   "জানুয়ারি": "January",
   "ফেব্রুয়ারি": "February",
@@ -86,29 +106,17 @@ export const BENGALI_MONTHS = {
   "ডিসেম্বর": "December"
 };
 
-export const FILTER_OPTIONS = ["সবগুলো", "হত্যা", "খুন", "ধর্ষণ", "ডাকাতি", "অপহরণ", "মাদক", "অন্যান্য"];
+export const CRIME_TYPE_FILTERS = ["সবগুলো", "হত্যা", "খুন", "ধর্ষণ", "ডাকাতি", "অপহরণ", "মাদক", "অন্যান্য"];
 
 export const BANGLADESH_CENTER = [23.6850, 90.3563];
 export const DEFAULT_ZOOM = 7;
 
-export const RISK_THRESHOLDS = [
-  { min: 50, label: "সবচেয়ে ঝুঁকিপূর্ণ", color: "#ff2d2d", emoji: "🔥" },
-  { min: 20, label: "উচ্চ ঝুঁকি", color: "#ff6b1a", emoji: "⚠️" },
-  { min: 10, label: "মাঝারি ঝুঁকি", color: "#f0a500", emoji: "⚡" },
-  { min: 5, label: "নিম্ন ঝুঁকি", color: "#22c55e", emoji: "✅" },
-  { min: 0, label: "স্বাভাবিক", color: "#3b82f6", emoji: "ℹ️" },
-];
-
-// export const MAP_TILES = {
-//   street: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-//   satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-//   dark: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
-// };
 export const MAP_TILES = {
   street: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-  dark: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" // ✅ replaced
+  dark: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
 };
+
 export const STATS_CONFIG = {
   totalCases: { label: "মোট ঘটনা", color: "#60a5fa" },
   murders: { label: "হত্যা", color: "#ff2d2d" },

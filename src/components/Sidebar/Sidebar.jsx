@@ -1,61 +1,938 @@
-import React from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import StatsBar from "./StatsBar";
 import ZoneCard from "./ZoneCard";
 
-const Sidebar = ({ zones, activeZoneIndex, onZoneClick }) => {
+const Sidebar = ({ 
+  zones, 
+  activeZoneIndex, 
+  onZoneClick, 
+  onZoneHover,
+  statistics,
+  timePeriodStatistics,
+  currentTimePeriodFilter,
+  sortBy,
+  sortOrder,
+  onSort,
+  onClose 
+}) => {
+  const [viewMode, setViewMode] = useState('district');
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [expandedDistrict, setExpandedDistrict] = useState(null);
+  const [hoveredDistrict, setHoveredDistrict] = useState(null);
+  const [hoveredLocation, setHoveredLocation] = useState(null);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
+  const [expandedDates, setExpandedDates] = useState({});
+  const hoverTimeoutRef = useRef(null);
+  const popupRef = useRef(null);
+  const expandTimeoutRef = useRef(null);
+  
+  const districtData = useMemo(() => {
+    const districts = {};
+    zones.forEach(zone => {
+      const district = zone.main_area;
+      if (!districts[district]) {
+        districts[district] = {
+          crimes: 0,
+          totalCases: 0,
+          crimeTypes: {},
+          zones: [],
+          riskLevels: {
+            critical: 0,
+            high: 0,
+            medium: 0,
+            low: 0,
+            normal: 0
+          },
+          history: []
+        };
+      }
+      districts[district].crimes++;
+      districts[district].totalCases += zone.quantity;
+      districts[district].zones.push(zone);
+      districts[district].history.push({
+        type: zone.type,
+        typeConfig: zone.typeConfig,
+        quantity: zone.quantity,
+        date: zone.date,
+        period: zone.period,
+        risk: zone.risk
+      });
+      
+      const riskLabel = zone.risk.label;
+      if (riskLabel === "সবচেয়ে ঝুঁকিপূর্ণ") districts[district].riskLevels.critical++;
+      else if (riskLabel === "উচ্চ ঝুঁকি") districts[district].riskLevels.high++;
+      else if (riskLabel === "মাঝারি ঝুঁকি") districts[district].riskLevels.medium++;
+      else if (riskLabel === "নিম্ন ঝুঁকি") districts[district].riskLevels.low++;
+      else districts[district].riskLevels.normal++;
+      
+      const type = zone.type;
+      if (!districts[district].crimeTypes[type]) {
+        districts[district].crimeTypes[type] = {
+          count: 0,
+          quantity: 0,
+          color: zone.typeConfig.color
+        };
+      }
+      districts[district].crimeTypes[type].count++;
+      districts[district].crimeTypes[type].quantity += zone.quantity;
+    });
+    
+    // Sort history by date (most recent first)
+    Object.keys(districts).forEach(key => {
+      districts[key].history.sort((a, b) => b.date.localeCompare(a.date));
+    });
+    
+    return districts;
+  }, [zones]);
+
+  const timelineData = useMemo(() => {
+    const timeline = {};
+    zones.forEach(zone => {
+      const date = zone.date;
+      if (!timeline[date]) {
+        timeline[date] = [];
+      }
+      timeline[date].push(zone);
+    });
+    return Object.entries(timeline).sort((a, b) => b[0].localeCompare(a[0]));
+  }, [zones]);
+
+  const locationHistory = useMemo(() => {
+    const history = {};
+    zones.forEach(zone => {
+      const location = zone.main_area;
+      if (!history[location]) {
+        history[location] = [];
+      }
+      history[location].push(zone);
+    });
+    
+    // Sort by date (most recent first)
+    Object.keys(history).forEach(key => {
+      history[key].sort((a, b) => b.date.localeCompare(a.date));
+    });
+    
+    return history;
+  }, [zones]);
+
+  const getDistrictRiskLevel = (district) => {
+    const data = districtData[district];
+    if (data.riskLevels.critical > 0) return { label: "সবচেয়ে ঝুঁকিপূর্ণ", color: "#ff2d2d", emoji: "🔥" };
+    if (data.riskLevels.high > 0) return { label: "উচ্চ ঝুঁকি", color: "#ff6b1a", emoji: "⚠️" };
+    if (data.riskLevels.medium > 0) return { label: "মাঝারি ঝুঁকি", color: "#f0a500", emoji: "⚡" };
+    if (data.riskLevels.low > 0) return { label: "নিম্ন ঝুঁকি", color: "#22c55e", emoji: "✅" };
+    return { label: "স্বাভাবিক", color: "#3b82f6", emoji: "ℹ️" };
+  };
+
+  const toggleDateExpansion = (date) => {
+    setExpandedDates(prev => ({
+      ...prev,
+      [date]: !prev[date]
+    }));
+  };
+
+  // Handle mouse enter on district - auto expand
+  const handleDistrictMouseEnter = (district, event) => {
+    // Clear any pending collapse timeout
+    if (expandTimeoutRef.current) {
+      clearTimeout(expandTimeoutRef.current);
+      expandTimeoutRef.current = null;
+    }
+    
+    setHoveredDistrict(district);
+    setExpandedDistrict(district); // Auto expand on hover
+    handleLocationHover(district, event);
+  };
+
+  // Handle mouse leave on district - auto collapse with delay
+  const handleDistrictMouseLeave = () => {
+    setHoveredDistrict(null);
+    
+    // Delay collapse to allow moving to expanded content
+    expandTimeoutRef.current = setTimeout(() => {
+      setExpandedDistrict(null);
+    }, 300); // 300ms delay
+    
+    handleLocationLeave();
+  };
+
+  // Handle mouse enter on expanded content - prevent collapse
+  const handleExpandedContentMouseEnter = () => {
+    if (expandTimeoutRef.current) {
+      clearTimeout(expandTimeoutRef.current);
+      expandTimeoutRef.current = null;
+    }
+  };
+
+  // Handle mouse leave on expanded content - allow collapse
+  const handleExpandedContentMouseLeave = () => {
+    expandTimeoutRef.current = setTimeout(() => {
+      setExpandedDistrict(null);
+    }, 300);
+  };
+
+  // Handle mouse enter on location for popup
+  const handleLocationHover = (location, event) => {
+    // Clear any existing timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    
+    // Get mouse position
+    const rect = event.currentTarget.getBoundingClientRect();
+    const sidebarRect = event.currentTarget.closest('.sidebar').getBoundingClientRect();
+    
+    setHoverPosition({
+      x: rect.right - sidebarRect.left + 10,
+      y: rect.top - sidebarRect.top
+    });
+    setHoveredLocation(location);
+  };
+
+  // Handle mouse leave from location popup
+  const handleLocationLeave = () => {
+    // Set timeout to close popup after 200ms (allows moving to popup)
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredLocation(null);
+    }, 200);
+  };
+
+  // Handle mouse enter on popup
+  const handlePopupEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+  };
+
+  // Handle mouse leave on popup
+  const handlePopupLeave = () => {
+    setHoveredLocation(null);
+  };
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+      if (expandTimeoutRef.current) {
+        clearTimeout(expandTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <div style={{
-      width: 300,
-      flexShrink: 0,
-      display: "flex",
-      flexDirection: "column",
-      background: "#0a0a14",
-      borderRight: "1px solid #1a1a2e",
-      overflow: "hidden"
+    <div className="sidebar" style={{
+      width: 380,
+      display: 'flex',
+      flexDirection: 'column',
+      background: '#0a0a14',
+      borderRight: '1px solid #1a1a2e',
+      overflow: 'hidden',
+      position: 'relative',
+      height: '100%'
     }}>
-      {/* Header */}
       <div style={{
-        padding: "12px 12px 10px",
-        borderBottom: "1px solid #1a1a2e",
-        background: "#0d0d18",
+        padding: '16px',
+        borderBottom: '1px solid #1a1a2e',
+        background: '#0d0d18',
         flexShrink: 0
       }}>
-        <div style={{
-          fontSize: 10.5,
-          color: "#475569",
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-          marginBottom: 10
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '12px'
         }}>
-          📍 Zones — <strong style={{ color: "#e2e8f0" }}>{zones.length}</strong> results
+          <h2 style={{ fontSize: '18px', color: '#f1f5f9', margin: 0 }}>
+            বাংলাদেশ অপরাধ মানচিত্র
+          </h2>
+          
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="close-btn"
+              style={{
+                background: 'transparent',
+                border: '1px solid #1e1e30',
+                borderRadius: '6px',
+                color: '#94a3b8',
+                width: '32px',
+                height: '32px',
+                fontSize: '16px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#1e1e30'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        
+        <div style={{
+          display: 'flex',
+          gap: '4px',
+          background: '#0a0a14',
+          padding: '4px',
+          borderRadius: '8px',
+          border: '1px solid #1e1e30',
+          marginBottom: '12px'
+        }}>
+          {[
+            { id: 'district', label: 'জেলা', icon: '🏛️' },
+            { id: 'heatmap', label: 'তাপমান', icon: '🔥' },
+            { id: 'timeline', label: 'সময়রেখা', icon: '📅' },
+            { id: 'list', label: 'তালিকা', icon: '📋' }
+          ].map(mode => {
+            const isActive = viewMode === mode.id;
+            return (
+              <button
+                key={mode.id}
+                onClick={() => setViewMode(mode.id)}
+                className="view-mode-btn"
+                style={{
+                  flex: 1,
+                  padding: '8px 4px',
+                  background: isActive ? '#1e1e30' : 'transparent',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: isActive ? '#f1f5f9' : '#64748b',
+                  fontSize: '11px',
+                  fontWeight: isActive ? '600' : '400',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) e.currentTarget.style.background = '#1a1a2a';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <span>{mode.icon}</span>
+                <span className="mode-label">{mode.label}</span>
+              </button>
+            );
+          })}
         </div>
         
         <StatsBar zones={zones} />
       </div>
 
-      {/* Zone list */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "10px 10px" }}>
-        {zones.length === 0 ? (
-          <div style={{
-            textAlign: "center",
-            padding: "48px 20px",
-            color: "#334155"
-          }}>
-            <div style={{ fontSize: 34, marginBottom: 10 }}>🔎</div>
-            <div style={{ fontSize: 13 }}>No zones match your filters</div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', position: 'relative' }}>
+        {/* Hover History Popup - Shows when hovering over any location */}
+        {hoveredLocation && locationHistory[hoveredLocation] && (
+          <div
+            ref={popupRef}
+            onMouseEnter={handlePopupEnter}
+            onMouseLeave={handlePopupLeave}
+            style={{
+              position: 'absolute',
+              left: hoverPosition.x,
+              top: hoverPosition.y,
+              width: '280px',
+              background: '#1a1a2a',
+              border: '1px solid #ff2d2d66',
+              borderRadius: '12px',
+              padding: '16px',
+              zIndex: 1000,
+              boxShadow: '0 8px 30px rgba(0,0,0,0.8)',
+              animation: 'fadeIn 0.2s ease',
+              pointerEvents: 'auto'
+            }}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '12px',
+              borderBottom: '1px solid #1e1e30',
+              paddingBottom: '8px'
+            }}>
+              <h3 style={{ fontSize: '14px', color: '#f1f5f9', margin: 0 }}>
+                📍 {hoveredLocation}
+              </h3>
+              <span style={{
+                background: '#ff2d2d22',
+                color: '#ff2d2d',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontSize: '10px',
+                fontWeight: 600
+              }}>
+                {locationHistory[hoveredLocation].length}টি ঘটনা
+              </span>
+            </div>
+            
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              {locationHistory[hoveredLocation].slice(0, 5).map((crime, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '10px',
+                    marginBottom: '8px',
+                    background: '#0f0f1a',
+                    borderRadius: '8px',
+                    borderLeft: `4px solid ${crime.typeConfig.color}`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onClick={() => {
+                    const index = zones.findIndex(z => z.id === crime.id);
+                    if (index !== -1) onZoneClick(index);
+                    setHoveredLocation(null);
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#1a1a2a';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#0f0f1a';
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#f1f5f9' }}>
+                      {crime.typeConfig.icon} {crime.type}
+                    </span>
+                    <span style={{ fontSize: '11px', color: crime.risk.color }}>
+                      {crime.risk.emoji} {crime.risk.label}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#64748b', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <span>{crime.date}</span>
+                    <span>•</span>
+                    <span>{crime.period}</span>
+                    <span>•</span>
+                    <span style={{ fontWeight: 600, color: crime.typeConfig.color }}>{crime.quantity}টি</span>
+                  </div>
+                </div>
+              ))}
+              
+              {locationHistory[hoveredLocation].length > 5 && (
+                <div style={{
+                  fontSize: '10px',
+                  color: '#475569',
+                  textAlign: 'center',
+                  padding: '8px',
+                  background: '#0a0a14',
+                  borderRadius: '6px',
+                  marginTop: '4px'
+                }}>
+                  + {locationHistory[hoveredLocation].length - 5}টি আরও ঘটনা...
+                </div>
+              )}
+            </div>
           </div>
-        ) : (
-          zones.map((zone, index) => (
-            <ZoneCard
-              key={index}
-              zone={zone}
-              index={index}
-              active={activeZoneIndex === index}
-              onClick={() => onZoneClick(index)}
-            />
-          ))
+        )}
+
+        {/* DISTRICT VIEW - Now with hover expand/collapse */}
+        {viewMode === 'district' && (
+          <div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: '12px',
+              fontSize: '12px',
+              color: '#64748b',
+              padding: '0 4px'
+            }}>
+              <span>মোট {Object.keys(districtData).length}টি জেলা</span>
+              <span>মামলা অনুযায়ী সাজানো</span>
+            </div>
+            
+            {Object.entries(districtData)
+              .sort((a, b) => b[1].totalCases - a[1].totalCases)
+              .map(([district, data]) => {
+                const districtRisk = getDistrictRiskLevel(district);
+                const isHovered = hoveredDistrict === district;
+                const isExpanded = expandedDistrict === district;
+
+                return (
+                  <div
+                    key={district}
+                    className="district-item"
+                    onMouseEnter={(e) => handleDistrictMouseEnter(district, e)}
+                    onMouseLeave={handleDistrictMouseLeave}
+                    style={{
+                      marginBottom: '12px',
+                      borderRadius: '10px',
+                      background: isHovered ? '#13131f' : '#0f0f1a',
+                      border: `1px solid ${isHovered ? districtRisk.color + '66' : '#1e1e30'}`,
+                      overflow: 'hidden',
+                      transition: 'all 0.2s ease',
+                      transform: isHovered ? 'translateX(4px)' : 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {/* District Header - Click to select */}
+                    <div
+                      onClick={() => setSelectedDistrict(district)}
+                      style={{
+                        padding: '14px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          marginBottom: '4px'
+                        }}>
+                          <h3 style={{ 
+                            fontSize: '16px', 
+                            fontWeight: '600', 
+                            color: '#f1f5f9', 
+                            margin: 0 
+                          }}>
+                            {district}
+                          </h3>
+                          <span style={{
+                            fontSize: '10px',
+                            padding: '2px 6px',
+                            borderRadius: '12px',
+                            background: districtRisk.color + '22',
+                            color: districtRisk.color,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '2px'
+                          }}>
+                            <span>{districtRisk.emoji}</span>
+                            <span>{districtRisk.label}</span>
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                          <span>{data.crimes}টি স্থান • </span>
+                          <span style={{ color: '#ff2d2d', fontWeight: '600' }}>{data.totalCases}</span>
+                          <span>টি মামলা</span>
+                        </div>
+                      </div>
+                      {/* + button removed - now hover controlled */}
+                    </div>
+
+                    {/* Expanded Details - shown on hover */}
+                    {isExpanded && (
+                      <div 
+                        onMouseEnter={handleExpandedContentMouseEnter}
+                        onMouseLeave={handleExpandedContentMouseLeave}
+                        style={{ 
+                          padding: '0 14px 14px 14px',
+                          animation: 'slideDown 0.2s ease'
+                        }}
+                      >
+                        <div style={{
+                          background: '#0a0a14',
+                          borderRadius: '8px',
+                          padding: '12px',
+                          marginBottom: '10px'
+                        }}>
+                          <div style={{ 
+                            fontSize: '10px', 
+                            color: '#475569', 
+                            marginBottom: '8px', 
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                          }}>
+                            ঝুঁকির মাত্রা
+                          </div>
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(3, 1fr)',
+                            gap: '8px'
+                          }}>
+                            {data.riskLevels.critical > 0 && (
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#ff2d2d' }}>
+                                  {data.riskLevels.critical}
+                                </div>
+                                <div style={{ fontSize: '8px', color: '#64748b' }}>অতি উচ্চ</div>
+                              </div>
+                            )}
+                            {data.riskLevels.high > 0 && (
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#ff6b1a' }}>
+                                  {data.riskLevels.high}
+                                </div>
+                                <div style={{ fontSize: '8px', color: '#64748b' }}>উচ্চ</div>
+                              </div>
+                            )}
+                            {data.riskLevels.medium > 0 && (
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#f0a500' }}>
+                                  {data.riskLevels.medium}
+                                </div>
+                                <div style={{ fontSize: '8px', color: '#64748b' }}>মাঝারি</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{
+                          background: '#0a0a14',
+                          borderRadius: '8px',
+                          padding: '12px'
+                        }}>
+                          <div style={{ 
+                            fontSize: '10px', 
+                            color: '#475569', 
+                            marginBottom: '8px', 
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                          }}>
+                            অপরাধের ধরণ
+                          </div>
+                          {Object.entries(data.crimeTypes).map(([type, typeData]) => (
+                            <div key={type} style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: '6px',
+                              fontSize: '11px',
+                              padding: '4px 0',
+                              borderBottom: '1px solid #1e1e30'
+                            }}>
+                              <span style={{ color: typeData.color, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                {type}
+                              </span>
+                              <span style={{ color: '#94a3b8' }}>
+                                {typeData.quantity}টি মামলা
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Recent History */}
+                        <div style={{
+                          background: '#0a0a14',
+                          borderRadius: '8px',
+                          padding: '12px',
+                          marginTop: '10px'
+                        }}>
+                          <div style={{ 
+                            fontSize: '10px', 
+                            color: '#475569', 
+                            marginBottom: '8px', 
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            <span>📋</span>
+                            <span>সাম্প্রতিক ঘটনা</span>
+                          </div>
+                          {data.history.slice(0, 3).map((item, idx) => (
+                            <div key={idx} style={{
+                              padding: '8px',
+                              marginBottom: '6px',
+                              background: '#0f0f1a',
+                              borderRadius: '6px',
+                              fontSize: '10px'
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                <span style={{ color: item.typeConfig?.color || '#94a3b8' }}>
+                                  {item.typeConfig?.icon} {item.type}
+                                </span>
+                                <span style={{ color: item.risk.color }}>{item.risk.emoji} {item.quantity}</span>
+                              </div>
+                              <div style={{ color: '#64748b' }}>
+                                {item.date} • {item.period}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
+        {/* HEATMAP VIEW */}
+        {viewMode === 'heatmap' && (
+          <div>
+            <div style={{ 
+              marginBottom: '12px', 
+              fontSize: '11px', 
+              color: '#64748b',
+              padding: '0 4px'
+            }}>
+              লাল রঙের গভীরতা = ঝুঁকির মাত্রা
+            </div>
+            {Object.entries(districtData)
+              .sort((a, b) => b[1].totalCases - a[1].totalCases)
+              .map(([district, data]) => {
+                const intensity = Math.min(data.totalCases / 100, 1);
+                const districtRisk = getDistrictRiskLevel(district);
+                const isHovered = hoveredDistrict === district;
+
+                return (
+                  <div
+                    key={district}
+                    className="heatmap-item"
+                    onMouseEnter={(e) => {
+                      setHoveredDistrict(district);
+                      handleLocationHover(district, e);
+                    }}
+                    onMouseLeave={handleLocationLeave}
+                    onClick={() => setSelectedDistrict(district)}
+                    style={{
+                      padding: '14px',
+                      marginBottom: '10px',
+                      borderRadius: '10px',
+                      background: `linear-gradient(90deg, ${districtRisk.color}${Math.floor(intensity * 100)} 0%, #0f0f1a ${intensity * 100}%)`,
+                      border: `1px solid ${isHovered ? districtRisk.color + '66' : '#1e1e30'}`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      transform: isHovered ? 'translateX(4px)' : 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                          <h4 style={{ margin: 0, fontSize: '15px', color: '#f1f5f9' }}>{district}</h4>
+                          <span style={{
+                            fontSize: '9px',
+                            padding: '2px 4px',
+                            borderRadius: '4px',
+                            background: districtRisk.color + '22',
+                            color: districtRisk.color
+                          }}>
+                            {districtRisk.emoji}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                          {data.crimes}টি স্থান • {data.totalCases}টি মামলা
+                        </span>
+                      </div>
+                      <div style={{ 
+                        fontSize: '20px', 
+                        fontWeight: 'bold', 
+                        color: districtRisk.color,
+                        textShadow: `0 0 10px ${districtRisk.color}`
+                      }}>
+                        {data.totalCases}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
+        {/* TIMELINE VIEW */}
+        {viewMode === 'timeline' && (
+          <div>
+            <div style={{ 
+              marginBottom: '12px', 
+              fontSize: '11px', 
+              color: '#64748b',
+              padding: '0 4px'
+            }}>
+              তারিখ অনুযায়ী সাজানো (সর্বশেষ ২০টি)
+            </div>
+            {timelineData.slice(0, 20).map(([date, crimes]) => {
+              const isExpanded = expandedDates[date] || false;
+              const totalCases = crimes.reduce((sum, c) => sum + c.quantity, 0);
+              const hasCritical = crimes.some(c => c.risk.label === "সবচেয়ে ঝুঁকিপূর্ণ");
+
+              return (
+                <div key={date} style={{ marginBottom: '12px' }}>
+                  <div style={{
+                    background: '#0f0f1a',
+                    borderRadius: '10px',
+                    border: `1px solid ${hasCritical ? '#ff2d2d66' : '#1e1e30'}`,
+                    overflow: 'hidden'
+                  }}>
+                    <div
+                      onClick={() => toggleDateExpansion(date)}
+                      style={{
+                        padding: '12px 14px',
+                        background: '#0a0a14',
+                        borderBottom: isExpanded ? '1px solid #1e1e30' : 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#13131f'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = '#0a0a14'}
+                    >
+                      <div>
+                        <span style={{ fontWeight: '600', color: '#f1f5f9', fontSize: '13px' }}>{date}</span>
+                        <span style={{ marginLeft: '8px', fontSize: '11px', color: '#64748b' }}>
+                          {crimes.length}টি ঘটনা • {totalCases}টি মামলা
+                        </span>
+                      </div>
+                      <span style={{ color: '#94a3b8', fontSize: '12px' }}>
+                        {isExpanded ? '▼' : '▶'}
+                      </span>
+                    </div>
+
+                    {isExpanded && (
+                      <div style={{ padding: '10px' }}>
+                        {crimes.map((crime, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => onZoneClick(zones.indexOf(crime))}
+                            onMouseEnter={(e) => {
+                              onZoneHover(crime);
+                              handleLocationHover(crime.main_area, e);
+                            }}
+                            onMouseLeave={handleLocationLeave}
+                            style={{
+                              padding: '10px 12px',
+                              marginBottom: '6px',
+                              background: '#0a0a14',
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              cursor: 'pointer',
+                              borderLeft: `4px solid ${crime.typeConfig.color}`,
+                              transition: 'all 0.2s',
+                              border: `1px solid transparent`
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#13131f';
+                              e.currentTarget.style.borderColor = crime.typeConfig.color + '44';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#0a0a14';
+                              e.currentTarget.style.borderColor = 'transparent';
+                            }}
+                          >
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                <span style={{ fontWeight: '600', color: '#f1f5f9' }}>{crime.main_area}</span>
+                                <span style={{
+                                  fontSize: '9px',
+                                  padding: '2px 4px',
+                                  borderRadius: '4px',
+                                  background: crime.risk.color + '22',
+                                  color: crime.risk.color
+                                }}>
+                                  {crime.risk.emoji} {crime.risk.label}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '8px', color: '#64748b' }}>
+                                <span>{crime.period}</span>
+                                <span>•</span>
+                                <span>{crime.typeConfig.icon} {crime.type}</span>
+                              </div>
+                            </div>
+                            <div style={{ 
+                              fontSize: '16px', 
+                              fontWeight: 'bold', 
+                              color: crime.typeConfig.color,
+                              minWidth: '40px',
+                              textAlign: 'center'
+                            }}>
+                              {crime.quantity}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* LIST VIEW */}
+        {viewMode === 'list' && (
+          <div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: '12px',
+              fontSize: '11px',
+              color: '#64748b',
+              padding: '0 4px'
+            }}>
+              <span>মোট {zones.length}টি ঘটনা</span>
+              <span>ঝুঁকি অনুযায়ী সাজানো</span>
+            </div>
+            {zones
+              .sort((a, b) => b.quantity - a.quantity)
+              .map((zone, index) => (
+                <div
+                  key={index}
+                  onMouseEnter={(e) => {
+                    onZoneHover(zone);
+                    handleLocationHover(zone.main_area, e);
+                  }}
+                  onMouseLeave={handleLocationLeave}
+                >
+                  <ZoneCard
+                    zone={zone}
+                    index={index}
+                    active={activeZoneIndex === index}
+                    onClick={() => onZoneClick(index)}
+                    onHover={onZoneHover}
+                  />
+                </div>
+              ))}
+          </div>
         )}
       </div>
+
+      <div style={{
+        padding: '12px 16px',
+        borderTop: '1px solid #1a1a2e',
+        background: '#0d0d18',
+        fontSize: '11px',
+        color: '#64748b',
+        display: 'flex',
+        justifyContent: 'space-between',
+        flexShrink: 0
+      }}>
+        <span>মোট ঘটনা: {zones.length}</span>
+        <span>মোট মামলা: {zones.reduce((sum, z) => sum + z.quantity, 0)}</span>
+        <span>⚡ ঝুঁকিপূর্ণ: {zones.filter(z => z.quantity >= 20).length}</span>
+      </div>
+
+      <style>
+        {`
+          @keyframes slideDown {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(-5px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

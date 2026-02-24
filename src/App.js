@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useZones } from "./hooks/useZones";
 import Header from "./components/Header/Header";
 import Sidebar from "./components/Sidebar/Sidebar";
@@ -9,9 +9,12 @@ function App() {
   const {
     filteredZones,
     statistics,
+    timePeriodStatistics,
     areaName,
-    filter,
-    setFilter,
+    crimeTypeFilter,
+    setCrimeTypeFilter,
+    timePeriodFilter,
+    setTimePeriodFilter,
     search,
     setSearch,
     activeZoneIndex,
@@ -19,24 +22,52 @@ function App() {
     clearActiveZone,
     hoveredZone,
     setHovered,
-    // clearHovered,
     sortBy,
     sortOrder,
     toggleSort
   } = useZones();
+
+  const [isMobile, setIsMobile] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
+
+  // Check if mobile view
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth <= 768) {
+        setShowSidebar(false);
+      } else {
+        setShowSidebar(true);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleSearchChange = (value) => {
     setSearch(value);
     clearActiveZone();
   };
 
-  const handleFilterChange = (newFilter) => {
-    setFilter(newFilter);
+  const handleCrimeTypeFilterChange = (newFilter) => {
+    setCrimeTypeFilter(newFilter);
+    clearActiveZone();
+  };
+
+  const handleTimePeriodFilterChange = (newFilter) => {
+    setTimePeriodFilter(newFilter);
     clearActiveZone();
   };
 
   const handleZoneClick = (index) => {
     setActiveZone(index);
+    // On mobile, hide sidebar when a zone is selected
+    if (isMobile) {
+      setShowSidebar(false);
+    }
   };
 
   const handleZoneHover = (zone) => {
@@ -50,24 +81,61 @@ function App() {
       <Header
         search={search}
         onSearchChange={handleSearchChange}
-        currentFilter={filter}
-        onFilterChange={handleFilterChange}
+        currentCrimeTypeFilter={crimeTypeFilter}
+        onCrimeTypeFilterChange={handleCrimeTypeFilterChange}
+        currentTimePeriodFilter={timePeriodFilter}
+        onTimePeriodFilterChange={handleTimePeriodFilterChange}
         areaName={areaName}
+        statistics={statistics}
       />
 
       <div className="main-container">
-        <Sidebar
-          zones={filteredZones}
-          activeZoneIndex={activeZoneIndex}
-          onZoneClick={handleZoneClick}
-          onZoneHover={handleZoneHover}
-          statistics={statistics}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          onSort={toggleSort}
-        />
+        {/* Sidebar - Conditionally shown on mobile */}
+        {(showSidebar || !isMobile) && (
+          <Sidebar
+            zones={filteredZones}
+            activeZoneIndex={activeZoneIndex}
+            onZoneClick={handleZoneClick}
+            onZoneHover={handleZoneHover}
+            statistics={statistics}
+            timePeriodStatistics={timePeriodStatistics}
+            currentTimePeriodFilter={timePeriodFilter}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={toggleSort}
+            onClose={isMobile ? () => setShowSidebar(false) : null}
+          />
+        )}
 
         <div className="map-container">
+          {/* Mobile Sidebar Toggle Button */}
+          {isMobile && !showSidebar && (
+            <button
+              onClick={() => setShowSidebar(true)}
+              style={{
+                position: "absolute",
+                top: "12px",
+                left: "12px",
+                zIndex: 1000,
+                padding: "8px 12px",
+                background: "#1a1a2a",
+                border: "1px solid #ff2d2d66",
+                borderRadius: "8px",
+                color: "#ff2d2d",
+                fontSize: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.3)"
+              }}
+            >
+              <span>📋</span>
+              <span>তালিকা দেখান</span>
+            </button>
+          )}
+
           <CrimeMap
             zones={filteredZones}
             activeZone={activeZoneIndex}
@@ -90,8 +158,13 @@ function App() {
                 {activeZone.typeConfig.icon} {activeZone.typeConfig.badge}
               </span>
               <span className="indicator-cases">
-                {activeZone.quantity} টি মামলা
+                {activeZone.quantity} টি
               </span>
+              {activeZone.period && activeZone.period !== "অজানা" && (
+                <span className="indicator-time">
+                  {activeZone.period}
+                </span>
+              )}
             </div>
           )}
         </div>
