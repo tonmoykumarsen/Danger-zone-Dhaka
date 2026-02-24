@@ -40,7 +40,7 @@ export const TRANSLATIONS = {
     // Stats
     totalLocations: 'মোট অবস্থান',
     totalCases: 'মোট মামলা',
-    highRisk: 'উচ্চ ঝুঁকিপূর্ণ',  // This is the correct key
+    highRisk: 'উচ্চ ঝুঁকিপূর্ণ',
     critical: 'সবচেয়ে ঝুঁকিপূর্ণ',
     high: 'উচ্চ ঝুঁকি',
     medium: 'মাঝারি ঝুঁকি',
@@ -60,11 +60,11 @@ export const TRANSLATIONS = {
     recentEvents: 'সাম্প্রতিক ঘটনা',
     moreEvents: '+ {count}টি আরও ঘটনা...',
     
-    // Risk levels
+    // Risk level labels
     riskLevel: 'ঝুঁকির মাত্রা',
     byRiskLevel: 'ঝুঁকির মাত্রা অনুযায়ী',
     criticalRisk: 'অতি উচ্চ',
-    highRisk: 'উচ্চ',  // Changed from 'highRisk' to avoid duplicate
+    highRiskLabel: 'উচ্চ',        // Changed from highRisk to highRiskLabel
     mediumRisk: 'মাঝারি',
     lowRisk: 'নিম্ন',
     
@@ -176,11 +176,11 @@ export const TRANSLATIONS = {
     recentEvents: 'Recent Events',
     moreEvents: '+ {count} more events...',
     
-    // Risk levels
+    // Risk level labels
     riskLevel: 'Risk Level',
     byRiskLevel: 'By Risk Level',
     criticalRisk: 'Critical',
-    highRisk: 'High',  // Changed from 'highRisk' to avoid duplicate
+    highRiskLabel: 'High',         // Changed from highRisk to highRiskLabel
     mediumRisk: 'Medium',
     lowRisk: 'Low',
     
