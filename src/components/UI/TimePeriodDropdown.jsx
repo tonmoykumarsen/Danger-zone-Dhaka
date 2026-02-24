@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 import { TIME_PERIODS } from "../../constants/config";
 
 const TimePeriodDropdown = ({ currentFilter, onFilterChange }) => {
+  const { t, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -17,6 +19,27 @@ const TimePeriodDropdown = ({ currentFilter, onFilterChange }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Get translated label for a period
+  const getTranslatedLabel = (period) => {
+    if (language === 'bn') {
+      return period.label; // Bengali labels are already in the data
+    } else {
+      // For English, map to translations
+      const translationMap = {
+        "সব সময়": "All Time",
+        "সকাল (৬-১২টা)": "Morning (6am-12pm)",
+        "দুপুর (১২-৩টা)": "Noon (12pm-3pm)",
+        "বিকাল (৩-৬টা)": "Afternoon (3pm-6pm)",
+        "সন্ধ্যা (৬-৮টা)": "Evening (6pm-8pm)",
+        "রাত (৮-১২টা)": "Night (8pm-12am)",
+        "মধ্যরাত (১২-৬টা)": "Midnight (12am-6am)",
+        "ভোর (৪-৬টা)": "Dawn (4am-6am)",
+        "অজানা": "Unknown"
+      };
+      return translationMap[period.label] || period.label;
+    }
+  };
 
   return (
     <div className="time-dropdown" ref={dropdownRef} style={{ position: "relative", minWidth: "200px" }}>
@@ -41,7 +64,7 @@ const TimePeriodDropdown = ({ currentFilter, onFilterChange }) => {
       >
         <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ color: currentPeriod.color, fontSize: "14px" }}>{currentPeriod.icon}</span>
-          <span>{currentPeriod.label}</span>
+          <span>{getTranslatedLabel(currentPeriod)}</span>
         </span>
         <span style={{ color: "#64748b", fontSize: "10px" }}>{isOpen ? "▲" : "▼"}</span>
       </button>
@@ -96,7 +119,7 @@ const TimePeriodDropdown = ({ currentFilter, onFilterChange }) => {
                 }}
               >
                 <span style={{ color: period.color, width: "20px", fontSize: "12px" }}>{period.icon}</span>
-                <span style={{ flex: 1 }}>{period.label}</span>
+                <span style={{ flex: 1 }}>{getTranslatedLabel(period)}</span>
                 {isActive && <span style={{ color: period.color }}>✓</span>}
               </button>
             );
@@ -120,7 +143,7 @@ const TimePeriodDropdown = ({ currentFilter, onFilterChange }) => {
             zIndex: 2
           }}
         >
-          সক্রিয়
+          {language === 'bn' ? 'সক্রিয়' : 'Active'}
         </div>
       )}
     </div>

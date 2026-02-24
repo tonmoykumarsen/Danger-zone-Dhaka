@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 import { formatBengaliDate } from "../../utils/helpers";
 import "./ZoneCard.css";
 
 const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
+  const { t, language } = useLanguage();
   const [hovered, setHovered] = useState(false);
   const typeConfig = zone.typeConfig;
   const risk = zone.risk;
@@ -28,28 +30,28 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
       border: "1px solid transparent"
     };
 
-    if (risk.label === "সবচেয়ে ঝুঁকিপূর্ণ") {
+    if (risk.label === "সবচেয়ে ঝুঁকিপূর্ণ" || risk.label === "Critical") {
       return {
         ...baseStyle,
         background: "#ff2d2d22",
         color: "#ff2d2d",
         borderColor: "#ff2d2d44"
       };
-    } else if (risk.label === "উচ্চ ঝুঁকি") {
+    } else if (risk.label === "উচ্চ ঝুঁকি" || risk.label === "High Risk") {
       return {
         ...baseStyle,
         background: "#ff6b1a22",
         color: "#ff6b1a",
         borderColor: "#ff6b1a44"
       };
-    } else if (risk.label === "মাঝারি ঝুঁকি") {
+    } else if (risk.label === "মাঝারি ঝুঁকি" || risk.label === "Medium Risk") {
       return {
         ...baseStyle,
         background: "#f0a50022",
         color: "#f0a500",
         borderColor: "#f0a50044"
       };
-    } else if (risk.label === "নিম্ন ঝুঁকি") {
+    } else if (risk.label === "নিম্ন ঝুঁকি" || risk.label === "Low Risk") {
       return {
         ...baseStyle,
         background: "#22c55e22",
@@ -63,6 +65,22 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
         color: "#3b82f6",
         borderColor: "#3b82f644"
       };
+    }
+  };
+
+  // Get translated risk label
+  const getRiskLabel = () => {
+    if (language === 'bn') {
+      return risk.label;
+    } else {
+      const translationMap = {
+        "সবচেয়ে ঝুঁকিপূর্ণ": "Critical",
+        "উচ্চ ঝুঁকি": "High Risk",
+        "মাঝারি ঝুঁকি": "Medium Risk",
+        "নিম্ন ঝুঁকি": "Low Risk",
+        "স্বাভাবিক": "Normal"
+      };
+      return translationMap[risk.label] || risk.label;
     }
   };
 
@@ -85,7 +103,7 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
         
         <div className="zone-quantity" style={{ color: typeConfig.color }}>
           <span className="quantity-number">{zone.quantity}</span>
-          <span className="quantity-label">টি মামলা</span>
+          <span className="quantity-label">{language === 'bn' ? 'টি মামলা' : 'cases'}</span>
         </div>
       </div>
 
@@ -95,11 +113,11 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
           color: typeConfig.color,
           borderColor: `${typeConfig.color}44`
         }}>
-          {typeConfig.icon} {typeConfig.badge}
+          {typeConfig.icon} {language === 'bn' ? typeConfig.badge : typeConfig.description.split('/')[0].trim()}
         </span>
         
         <span className="risk-badge" style={getRiskBadgeStyle()}>
-          {risk.emoji} {risk.label}
+          {risk.emoji} {getRiskLabel()}
         </span>
       </div>
 
@@ -118,10 +136,12 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
             <span>⏰ {zone.period}</span>
           </div>
           <div className="detail-row">
-            <span>📍 অক্ষাংশ: {zone.location[0].toFixed(4)}</span>
-            <span>📌 দ্রাঘিমা: {zone.location[1].toFixed(4)}</span>
+            <span>📍 {language === 'bn' ? 'অক্ষাংশ' : 'Lat'}: {zone.location[0].toFixed(4)}</span>
+            <span>📌 {language === 'bn' ? 'দ্রাঘিমা' : 'Lng'}: {zone.location[1].toFixed(4)}</span>
           </div>
-          <div className="detail-hint">👆 মানচিত্রে দেখতে ক্লিক করুন</div>
+          <div className="detail-hint">
+            {language === 'bn' ? '👆 মানচিত্রে দেখতে ক্লিক করুন' : '👆 Click to view on map'}
+          </div>
         </div>
       )}
     </div>

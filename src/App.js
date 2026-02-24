@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { LanguageProvider } from "./context/LanguageContext";
 import { useZones } from "./hooks/useZones";
 import Header from "./components/Header/Header";
 import Sidebar from "./components/Sidebar/Sidebar";
 import CrimeMap from "./components/Map/CrimeMap";
 import "./styles/global.css";
 
-function App() {
+function AppContent() {
   const {
     filteredZones,
     statistics,
@@ -30,7 +31,6 @@ function App() {
   const [isMobile, setIsMobile] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
 
-  // Check if mobile view
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -64,7 +64,6 @@ function App() {
 
   const handleZoneClick = (index) => {
     setActiveZone(index);
-    // On mobile, hide sidebar when a zone is selected
     if (isMobile) {
       setShowSidebar(false);
     }
@@ -90,7 +89,6 @@ function App() {
       />
 
       <div className="main-container">
-        {/* Sidebar - Conditionally shown on mobile */}
         {(showSidebar || !isMobile) && (
           <Sidebar
             zones={filteredZones}
@@ -108,7 +106,6 @@ function App() {
         )}
 
         <div className="map-container">
-          {/* Mobile Sidebar Toggle Button */}
           {isMobile && !showSidebar && (
             <button
               onClick={() => setShowSidebar(true)}
@@ -132,7 +129,7 @@ function App() {
               }}
             >
               <span>📋</span>
-              <span>তালিকা দেখান</span>
+              <span>{showSidebar ? 'Hide' : 'Show'} List</span>
             </button>
           )}
 
@@ -158,7 +155,7 @@ function App() {
                 {activeZone.typeConfig.icon} {activeZone.typeConfig.badge}
               </span>
               <span className="indicator-cases">
-                {activeZone.quantity} টি
+                {activeZone.quantity} {activeZone.quantity > 1 ? 'cases' : 'case'}
               </span>
               {activeZone.period && activeZone.period !== "অজানা" && (
                 <span className="indicator-time">
@@ -170,6 +167,14 @@ function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }
 

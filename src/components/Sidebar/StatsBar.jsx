@@ -1,4 +1,5 @@
 import React from "react";
+import { useLanguage } from "../../context/LanguageContext";
 import { getStatistics } from "../../utils/helpers";
 
 const StatItem = ({ label, value, color }) => (
@@ -31,12 +32,14 @@ const StatItem = ({ label, value, color }) => (
 );
 
 const RiskLevelIndicator = ({ riskCounts }) => {
+  const { t } = useLanguage();
+  
   const riskItems = [
-    { label: "সবচেয়ে ঝুঁকিপূর্ণ", value: riskCounts.critical, color: "#ff2d2d", emoji: "🔥" },
-    { label: "উচ্চ ঝুঁকি", value: riskCounts.high, color: "#ff6b1a", emoji: "⚠️" },
-    { label: "মাঝারি ঝুঁকি", value: riskCounts.medium, color: "#f0a500", emoji: "⚡" },
-    { label: "নিম্ন ঝুঁকি", value: riskCounts.low, color: "#22c55e", emoji: "✅" },
-    { label: "স্বাভাবিক", value: riskCounts.normal, color: "#3b82f6", emoji: "ℹ️" }
+    { label: t('critical'), value: riskCounts.critical, color: "#ff2d2d", emoji: "🔥" },
+    { label: t('high'), value: riskCounts.high, color: "#ff6b1a", emoji: "⚠️" },
+    { label: t('medium'), value: riskCounts.medium, color: "#f0a500", emoji: "⚡" },
+    { label: t('low'), value: riskCounts.low, color: "#22c55e", emoji: "✅" },
+    { label: t('normal'), value: riskCounts.normal, color: "#3b82f6", emoji: "ℹ️" }
   ];
 
   return (
@@ -57,7 +60,7 @@ const RiskLevelIndicator = ({ riskCounts }) => {
         gap: "4px"
       }}>
         <span>⚠️</span>
-        <span>ঝুঁকির মাত্রা অনুযায়ী</span>
+        <span>{t('byRiskLevel')}</span>
       </div>
       {riskItems.map(item => (
         <div key={item.label} style={{
@@ -79,6 +82,8 @@ const RiskLevelIndicator = ({ riskCounts }) => {
 };
 
 const HotspotIndicator = ({ hotspot }) => {
+  const { t } = useLanguage();
+  
   if (!hotspot) return null;
 
   return (
@@ -100,7 +105,7 @@ const HotspotIndicator = ({ hotspot }) => {
         gap: "4px"
       }}>
         <span>🔥</span>
-        <span>সবচেয়ে ঝুঁকিপূর্ণ এলাকা</span>
+        <span>{t('hotspot')}</span>
       </div>
       
       <div style={{
@@ -137,16 +142,17 @@ const HotspotIndicator = ({ hotspot }) => {
 };
 
 const StatsBar = ({ zones }) => {
+  const { t } = useLanguage();
   const stats = getStatistics(zones);
 
   const statItems = [
-    { label: "মোট অবস্থান", value: stats.total, color: "#60a5fa" },
-    { label: "হত্যা", value: stats.murders, color: "#ff2d2d" },
-    { label: "ধর্ষণ", value: stats.rape, color: "#ff6b1a" },
-    { label: "ডাকাতি", value: stats.robbery, color: "#ff4500" },
-    { label: "অপহরণ", value: stats.kidnapping, color: "#f0a500" },
-    { label: "মাদক", value: stats.drugs, color: "#22c55e" },
-    { label: "অন্যান্য", value: stats.others, color: "#6b7280" },
+    { label: t('totalLocations'), value: stats.total, color: "#60a5fa" },
+    { label: t('murder'), value: stats.murders, color: "#ff2d2d" },
+    { label: t('rape'), value: stats.rape, color: "#ff6b1a" },
+    { label: t('robbery'), value: stats.robbery, color: "#ff4500" },
+    { label: t('kidnapping'), value: stats.kidnapping, color: "#f0a500" },
+    { label: t('drugs'), value: stats.drugs, color: "#22c55e" },
+    { label: t('others'), value: stats.others, color: "#6b7280" },
   ];
 
   return (

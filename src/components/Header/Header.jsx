@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
-import { CRIME_TYPE_FILTERS, TIME_PERIODS } from "../../constants/config";
-import HamburgerMenu from "../Layout/HamburgerMenu";
-import FilterButtons from "../UI/FilterButtons";
+import React, { useState, useEffect } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 import SearchInput from "../UI/SearchInput";
+import FilterButtons from "../UI/FilterButtons";
 import TimePeriodDropdown from "../UI/TimePeriodDropdown";
+import HamburgerMenu from "../Layout/HamburgerMenu";
+import LanguageToggle from "../UI/LanguageToggle";
+import { CRIME_TYPE_FILTERS, TIME_PERIODS } from "../../constants/config";
 
 const Header = ({ 
   search, 
@@ -15,6 +17,7 @@ const Header = ({
   areaName,
   statistics
 }) => {
+  const { t, language } = useLanguage();
   const [isMobile, setIsMobile] = useState(false);
   const [showTimeFilters, setShowTimeFilters] = useState(false);
 
@@ -50,7 +53,7 @@ const Header = ({
             textShadow: "0 0 18px #ff2d2d88",
             lineHeight: 1
           }}>
-            ⚠ DangerZone
+            ⚠ {t('appName')}
           </div>
           <div style={{
             fontSize: 8,
@@ -64,10 +67,11 @@ const Header = ({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <LanguageToggle />
           <SearchInput
             value={search}
             onChange={onSearchChange}
-            placeholder="খুঁজুন..."
+            placeholder={t('searchPlaceholder')}
             compact={true}
           />
           <HamburgerMenu
@@ -100,33 +104,36 @@ const Header = ({
         gap: 14,
         flexWrap: "wrap"
       }}>
-        <div>
-          <div style={{
-            fontFamily: "'Bebas Neue',cursive",
-            fontSize: 24,
-            letterSpacing: 2,
-            color: "#ff2d2d",
-            textShadow: "0 0 18px #ff2d2d88",
-            lineHeight: 1
-          }}>
-            ⚠ ডেঞ্জারজোন
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div>
+            <div style={{
+              fontFamily: "'Bebas Neue',cursive",
+              fontSize: 24,
+              letterSpacing: 2,
+              color: "#ff2d2d",
+              textShadow: "0 0 18px #ff2d2d88",
+              lineHeight: 1
+            }}>
+              ⚠ {t('appName')}
+            </div>
+            <div style={{
+              fontSize: 9.5,
+              color: "#475569",
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              marginTop: 1
+            }}>
+              {t('appSubtitle')}
+            </div>
           </div>
-          <div style={{
-            fontSize: 9.5,
-            color: "#475569",
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-            marginTop: 1
-          }}>
-            {areaName} - অপরাধ মানচিত্র
-          </div>
+          <LanguageToggle />
         </div>
 
         <div style={{ flex: 1, maxWidth: "400px" }}>
           <SearchInput
             value={search}
             onChange={onSearchChange}
-            placeholder="অঞ্চল বা অপরাধের ধরন খুঁজুন..."
+            placeholder={t('searchPlaceholder')}
           />
         </div>
 
@@ -148,7 +155,7 @@ const Header = ({
           }}
         >
           <span>⏰</span>
-          <span>{showTimeFilters ? "সময় ফিল্টার সক্রিয়" : "সময় ফিল্টার"}</span>
+          <span>{showTimeFilters ? t('timeFilterActive') : t('timeFilter')}</span>
         </button>
       </div>
 
@@ -175,7 +182,7 @@ const Header = ({
             textTransform: "uppercase",
             whiteSpace: "nowrap"
           }}>
-            অপরাধের ধরন:
+            {t('crimeType')}:
           </span>
           <FilterButtons
             filters={CRIME_TYPE_FILTERS}
@@ -198,7 +205,7 @@ const Header = ({
               textTransform: "uppercase",
               whiteSpace: "nowrap"
             }}>
-              সময়:
+              {t('time')}:
             </span>
             <TimePeriodDropdown
               currentFilter={currentTimePeriodFilter}
