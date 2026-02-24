@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useLanguage } from "../../context/LanguageContext";
 import StatsBar from "./StatsBar";
 import ZoneCard from "./ZoneCard";
+import { getRiskLevel } from "../../utils/helpers";
 
 const Sidebar = ({ 
   zones, 
@@ -27,14 +28,27 @@ const Sidebar = ({
   const popupRef = useRef(null);
   const expandTimeoutRef = useRef(null);
   
+  // Process district data with total quantity per location
   const districtData = useMemo(() => {
     const districts = {};
+    
+    // First, calculate total quantity per location
+    const locationTotalMap = {};
+    zones.forEach(zone => {
+      const location = zone.main_area;
+      locationTotalMap[location] = (locationTotalMap[location] || 0) + (zone.quantity || 0);
+    });
+    
     zones.forEach(zone => {
       const district = zone.main_area;
+      const totalLocationQty = locationTotalMap[district] || zone.quantity;
+      const riskLevel = getRiskLevel(totalLocationQty);
+      
       if (!districts[district]) {
         districts[district] = {
           crimes: 0,
           totalCases: 0,
+          totalLocationQuantity: totalLocationQty,
           crimeTypes: {},
           zones: [],
           riskLevels: {
@@ -47,6 +61,7 @@ const Sidebar = ({
           history: []
         };
       }
+      
       districts[district].crimes++;
       districts[district].totalCases += zone.quantity;
       districts[district].zones.push(zone);
@@ -56,15 +71,23 @@ const Sidebar = ({
         quantity: zone.quantity,
         date: zone.date,
         period: zone.period,
-        risk: zone.risk
+        risk: zone.risk,
+        totalLocationQty: totalLocationQty
       });
       
-      const riskLabel = zone.risk.label;
-      if (riskLabel === "সবচেয়ে ঝুঁকিপূর্ণ" || riskLabel === "Critical") districts[district].riskLevels.critical++;
-      else if (riskLabel === "উচ্চ ঝুঁকি" || riskLabel === "High Risk") districts[district].riskLevels.high++;
-      else if (riskLabel === "মাঝারি ঝুঁকি" || riskLabel === "Medium Risk") districts[district].riskLevels.medium++;
-      else if (riskLabel === "নিম্ন ঝুঁকি" || riskLabel === "Low Risk") districts[district].riskLevels.low++;
-      else districts[district].riskLevels.normal++;
+      // Update risk levels based on total location quantity
+      const riskLabel = riskLevel.label;
+      if (riskLabel === "সবচেয়ে ঝুঁকিপূর্ণ" || riskLabel === "Critical") {
+        districts[district].riskLevels.critical++;
+      } else if (riskLabel === "উচ্চ ঝুঁকি" || riskLabel === "High Risk") {
+        districts[district].riskLevels.high++;
+      } else if (riskLabel === "মাঝারি ঝুঁকি" || riskLabel === "Medium Risk") {
+        districts[district].riskLevels.medium++;
+      } else if (riskLabel === "নিম্ন ঝুঁকি" || riskLabel === "Low Risk") {
+        districts[district].riskLevels.low++;
+      } else {
+        districts[district].riskLevels.normal++;
+      }
       
       const type = zone.type;
       if (!districts[district].crimeTypes[type]) {
@@ -100,12 +123,25 @@ const Sidebar = ({
 
   const locationHistory = useMemo(() => {
     const history = {};
+    
+    // First calculate total per location
+    const locationTotalMap = {};
     zones.forEach(zone => {
       const location = zone.main_area;
+      locationTotalMap[location] = (locationTotalMap[location] || 0) + (zone.quantity || 0);
+    });
+    
+    zones.forEach(zone => {
+      const location = zone.main_area;
+      const totalQty = locationTotalMap[location] || zone.quantity;
+      
       if (!history[location]) {
         history[location] = [];
       }
-      history[location].push(zone);
+      history[location].push({
+        ...zone,
+        totalLocationQuantity: totalQty
+      });
     });
     
     // Sort by date (most recent first)
@@ -118,31 +154,22 @@ const Sidebar = ({
 
   const getDistrictRiskLevel = (district) => {
     const data = districtData[district];
-    if (data.riskLevels.critical > 0) return { 
-      label: t('critical'), 
-      color: "#ff2d2d", 
-      emoji: "🔥" 
-    };
-    if (data.riskLevels.high > 0) return { 
-      label: t('high'), 
-      color: "#ff6b1a", 
-      emoji: "⚠️" 
-    };
-    if (data.riskLevels.medium > 0) return { 
-      label: t('medium'), 
-      color: "#f0a500", 
-      emoji: "⚡" 
-    };
-    if (data.riskLevels.low > 0) return { 
-      label: t('low'), 
-      color: "#22c55e", 
-      emoji: "✅" 
-    };
-    return { 
-      label: t('normal'), 
-      color: "#3b82f6", 
-      emoji: "ℹ️" 
-    };
+    if (!data) return { label: t('normal'), color: "#3b82f6", emoji: "ℹ️" };
+    
+    // Determine district risk based on highest risk level present
+    if (data.riskLevels.critical > 0) {
+      return { label: t('critical'), color: "#ff2d2d", emoji: "🔥" };
+    }
+    if (data.riskLevels.high > 0) {
+      return { label: t('high'), color: "#ff6b1a", emoji: "⚠️" };
+    }
+    if (data.riskLevels.medium > 0) {
+      return { label: t('medium'), color: "#f0a500", emoji: "⚡" };
+    }
+    if (data.riskLevels.low > 0) {
+      return { label: t('low'), color: "#22c55e", emoji: "✅" };
+    }
+    return { label: t('normal'), color: "#3b82f6", emoji: "ℹ️" };
   };
 
   const toggleDateExpansion = (date) => {
@@ -201,7 +228,7 @@ const Sidebar = ({
     const sidebarRect = event.currentTarget.closest('.sidebar').getBoundingClientRect();
     
     setHoverPosition({
-      x: rect.right - sidebarRect.left + 10,
+      x: Math.min(rect.right - sidebarRect.left + 10, 300), // Prevent going off screen
       y: rect.top - sidebarRect.top
     });
     setHoveredLocation(location);
@@ -245,6 +272,12 @@ const Sidebar = ({
     { id: 'timeline', label: t('timeline'), icon: '📅' },
     { id: 'list', label: t('list'), icon: '📋' }
   ];
+
+  // Calculate total cases per location for risk display
+  const getLocationTotal = (location) => {
+    const locationZones = zones.filter(z => z.main_area === location);
+    return locationZones.reduce((sum, z) => sum + (z.quantity || 0), 0);
+  };
 
   return (
     <div className="sidebar" style={{
@@ -360,6 +393,7 @@ const Sidebar = ({
               left: hoverPosition.x,
               top: hoverPosition.y,
               width: '280px',
+              maxWidth: '90vw',
               background: '#1a1a2a',
               border: '1px solid #ff2d2d66',
               borderRadius: '12px',
@@ -393,6 +427,28 @@ const Sidebar = ({
               </span>
             </div>
             
+            {/* Total Cases for this location */}
+            <div style={{
+              background: '#0f0f1a',
+              borderRadius: '6px',
+              padding: '8px',
+              marginBottom: '12px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+                {language === 'bn' ? 'মোট মামলা:' : 'Total Cases:'}
+              </span>
+              <span style={{ 
+                fontSize: '14px', 
+                fontWeight: 'bold',
+                color: locationHistory[hoveredLocation][0]?.risk?.color || '#ff2d2d'
+              }}>
+                {getLocationTotal(hoveredLocation)}
+              </span>
+            </div>
+            
             <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
               {locationHistory[hoveredLocation].slice(0, 5).map((crime, idx) => (
                 <div
@@ -420,7 +476,7 @@ const Sidebar = ({
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <span style={{ fontSize: '11px', fontWeight: '600', color: '#f1f5f9' }}>
-                      {crime.typeConfig.icon} {language === 'bn' ? crime.type : crime.typeConfig.description.split('/')[0].trim()}
+                      {crime.typeConfig.icon} {language === 'bn' ? crime.type : crime.typeConfig.description?.split('/')[0]?.trim() || crime.type}
                     </span>
                     <span style={{ fontSize: '11px', color: crime.risk.color }}>
                       {crime.risk.emoji} {language === 'bn' ? crime.risk.label : {
@@ -482,6 +538,7 @@ const Sidebar = ({
                 const districtRisk = getDistrictRiskLevel(district);
                 const isHovered = hoveredDistrict === district;
                 const isExpanded = expandedDistrict === district;
+                const totalLocationQty = data.totalLocationQuantity || data.totalCases;
 
                 return (
                   <div
@@ -537,8 +594,8 @@ const Sidebar = ({
                         </div>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>
                           <span>{data.crimes}{t('locations')} • </span>
-                          <span style={{ color: '#ff2d2d', fontWeight: '600' }}>{data.totalCases}</span>
-                          <span>{t('cases')}</span>
+                          <span style={{ color: '#ff2d2d', fontWeight: '600' }}>{totalLocationQty}</span>
+                          <span>{t('cases')} total</span>
                         </div>
                       </div>
                     </div>
@@ -663,7 +720,7 @@ const Sidebar = ({
                             }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                                 <span style={{ color: item.typeConfig?.color || '#94a3b8' }}>
-                                  {item.typeConfig?.icon} {language === 'bn' ? item.type : item.typeConfig?.description.split('/')[0].trim()}
+                                  {item.typeConfig?.icon} {language === 'bn' ? item.type : item.typeConfig?.description?.split('/')[0]?.trim() || item.type}
                                 </span>
                                 <span style={{ color: item.risk.color }}>
                                   {item.risk.emoji} {item.quantity}
@@ -697,7 +754,8 @@ const Sidebar = ({
             {Object.entries(districtData)
               .sort((a, b) => b[1].totalCases - a[1].totalCases)
               .map(([district, data]) => {
-                const intensity = Math.min(data.totalCases / 100, 1);
+                const totalQty = data.totalLocationQuantity || data.totalCases;
+                const intensity = Math.min(totalQty / 100, 1);
                 const districtRisk = getDistrictRiskLevel(district);
                 const isHovered = hoveredDistrict === district;
 
@@ -736,7 +794,7 @@ const Sidebar = ({
                           </span>
                         </div>
                         <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-                          {data.crimes}{t('locations')} • {data.totalCases}{t('cases')}
+                          {data.crimes}{t('locations')} • {totalQty}{t('cases')} total
                         </span>
                       </div>
                       <div style={{ 
@@ -745,7 +803,7 @@ const Sidebar = ({
                         color: districtRisk.color,
                         textShadow: `0 0 10px ${districtRisk.color}`
                       }}>
-                        {data.totalCases}
+                        {totalQty}
                       </div>
                     </div>
                   </div>
@@ -852,7 +910,7 @@ const Sidebar = ({
                               <div style={{ display: 'flex', gap: '8px', color: '#64748b' }}>
                                 <span>{crime.period}</span>
                                 <span>•</span>
-                                <span>{crime.typeConfig.icon} {language === 'bn' ? crime.type : crime.typeConfig.description.split('/')[0].trim()}</span>
+                                <span>{crime.typeConfig.icon} {language === 'bn' ? crime.type : crime.typeConfig.description?.split('/')[0]?.trim() || crime.type}</span>
                               </div>
                             </div>
                             <div style={{ 
@@ -925,7 +983,7 @@ const Sidebar = ({
       }}>
         <span>{language === 'bn' ? `মোট ঘটনা: ${zones.length}` : `Total events: ${zones.length}`}</span>
         <span>{language === 'bn' ? `মোট মামলা: ${zones.reduce((sum, z) => sum + z.quantity, 0)}` : `Total cases: ${zones.reduce((sum, z) => sum + z.quantity, 0)}`}</span>
-        <span>⚡ {language === 'bn' ? `ঝুঁকিপূর্ণ: ${zones.filter(z => z.quantity >= 20).length}` : `High risk: ${zones.filter(z => z.quantity >= 20).length}`}</span>
+        <span>⚡ {language === 'bn' ? `ঝুঁকিপূর্ণ: ${zones.filter(z => (z.totalLocationQuantity || z.quantity) >= 20).length}` : `High risk: ${zones.filter(z => (z.totalLocationQuantity || z.quantity) >= 20).length}`}</span>
       </div>
 
       <style>

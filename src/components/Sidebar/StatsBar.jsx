@@ -34,12 +34,20 @@ const StatItem = ({ label, value, color }) => (
 const RiskLevelIndicator = ({ riskCounts }) => {
   const { t } = useLanguage();
   
+  const counts = riskCounts || {
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0,
+    normal: 0
+  };
+  
   const riskItems = [
-    { label: t('critical'), value: riskCounts.critical, color: "#ff2d2d", emoji: "🔥" },
-    { label: t('high'), value: riskCounts.high, color: "#ff6b1a", emoji: "⚠️" },
-    { label: t('medium'), value: riskCounts.medium, color: "#f0a500", emoji: "⚡" },
-    { label: t('low'), value: riskCounts.low, color: "#22c55e", emoji: "✅" },
-    { label: t('normal'), value: riskCounts.normal, color: "#3b82f6", emoji: "ℹ️" }
+    { label: t('critical'), value: counts.critical, color: "#ff2d2d", emoji: "🔥" },
+    { label: t('high'), value: counts.high, color: "#ff6b1a", emoji: "⚠️" },
+    { label: t('medium'), value: counts.medium, color: "#f0a500", emoji: "⚡" },
+    { label: t('low'), value: counts.low, color: "#22c55e", emoji: "✅" },
+    { label: t('normal'), value: counts.normal, color: "#3b82f6", emoji: "ℹ️" }
   ];
 
   return (
@@ -123,6 +131,9 @@ const HotspotIndicator = ({ hotspot }) => {
           <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "4px" }}>
             {hotspot.period} • {hotspot.date}
           </div>
+          <div style={{ fontSize: "9px", color: hotspot.risk.color, marginTop: "2px" }}>
+            {hotspot.risk.emoji} {hotspot.risk.label} (Total: {hotspot.totalLocationQuantity || hotspot.quantity})
+          </div>
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{
@@ -145,14 +156,31 @@ const StatsBar = ({ zones }) => {
   const { t } = useLanguage();
   const stats = getStatistics(zones);
 
+  const safeStats = {
+    total: stats?.total || 0,
+    murders: stats?.murders || 0,
+    rape: stats?.rape || 0,
+    robbery: stats?.robbery || 0,
+    kidnapping: stats?.kidnapping || 0,
+    drugs: stats?.drugs || 0,
+    others: stats?.others || 0,
+    riskCounts: stats?.riskCounts || {
+      critical: 0,
+      high: 0,
+      medium: 0,
+      low: 0,
+      normal: 0
+    }
+  };
+
   const statItems = [
-    { label: t('totalLocations'), value: stats.total, color: "#60a5fa" },
-    { label: t('murder'), value: stats.murders, color: "#ff2d2d" },
-    { label: t('rape'), value: stats.rape, color: "#ff6b1a" },
-    { label: t('robbery'), value: stats.robbery, color: "#ff4500" },
-    { label: t('kidnapping'), value: stats.kidnapping, color: "#f0a500" },
-    { label: t('drugs'), value: stats.drugs, color: "#22c55e" },
-    { label: t('others'), value: stats.others, color: "#6b7280" },
+    { label: t('totalLocations'), value: safeStats.total, color: "#60a5fa" },
+    { label: t('murder'), value: safeStats.murders, color: "#ff2d2d" },
+    { label: t('rape'), value: safeStats.rape, color: "#ff6b1a" },
+    { label: t('robbery'), value: safeStats.robbery, color: "#ff4500" },
+    { label: t('kidnapping'), value: safeStats.kidnapping, color: "#f0a500" },
+    { label: t('drugs'), value: safeStats.drugs, color: "#22c55e" },
+    { label: t('others'), value: safeStats.others, color: "#6b7280" },
   ];
 
   return (
@@ -178,9 +206,9 @@ const StatsBar = ({ zones }) => {
         ))}
       </div>
 
-      <RiskLevelIndicator riskCounts={stats.riskCounts} />
+      <RiskLevelIndicator riskCounts={safeStats.riskCounts} />
       
-      <HotspotIndicator hotspot={stats.hotspot} />
+      <HotspotIndicator hotspot={stats?.hotspot} />
     </div>
   );
 };

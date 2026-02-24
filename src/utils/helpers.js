@@ -21,7 +21,8 @@ export const getRiskLevel = (quantity) => {
         label: risk.label,
         color: risk.color,
         emoji: risk.emoji,
-        threshold: risk.threshold
+        threshold: risk.threshold,
+        en: risk.en
       };
     }
   }
@@ -30,7 +31,8 @@ export const getRiskLevel = (quantity) => {
     label: "স্বাভাবিক",
     color: "#3b82f6",
     emoji: "ℹ️",
-    threshold: 0
+    threshold: 0,
+    en: "Normal"
   };
 };
 
@@ -106,101 +108,96 @@ export const filterZones = (zones, crimeTypeFilter, timePeriodFilter, search) =>
   return filtered;
 };
 
-// FIXED: This function now works with enhancedZones (not raw data)
+// UPDATED: Risk levels based on TOTAL quantity per location
 export const getStatistics = (zones) => {
-  // If no zones, return default values
+  console.log("getStatistics received zones:", zones);
+  
   if (!zones || zones.length === 0) {
     return {
-      total: 0,
-      murders: 0,
-      rape: 0,
-      robbery: 0,
-      kidnapping: 0,
-      drugs: 0,
-      others: 0,
-      totalCases: 0,
-      maxQuantity: 0,
-      hotspot: null,
-      riskCounts: {
-        critical: 0,
-        high: 0,
-        medium: 0,
-        low: 0,
-        normal: 0
-      }
+      total: 0, murders: 0, rape: 0, robbery: 0,
+      kidnapping: 0, drugs: 0, others: 0,
+      totalCases: 0, maxQuantity: 0, hotspot: null,
+      riskCounts: { critical: 0, high: 0, medium: 0, low: 0, normal: 0 }
     };
   }
 
-  // Count unique locations (using main_area from enhancedZones)
-  const uniqueLocations = new Set(zones.map(z => z.main_area)).size;
+  // Group total quantity per location
+  const locationQuantityMap = {};
+  const locationCrimesMap = {}; // Store all crimes per location for hotspot detection
   
-  // Initialize counters
-  let murders = 0;
-  let rape = 0;
-  let robbery = 0;
-  let kidnapping = 0;
-  let drugs = 0;
-  let others = 0;
+  zones.forEach(zone => {
+    const loc = zone.main_area;
+    const quantity = Number(zone.quantity) || 0;
+    
+    // Sum quantities per location
+    locationQuantityMap[loc] = (locationQuantityMap[loc] || 0) + quantity;
+    
+    // Store crimes per location
+    if (!locationCrimesMap[loc]) {
+      locationCrimesMap[loc] = [];
+    }
+    locationCrimesMap[loc].push(zone);
+  });
+
+  console.log("Location quantity map:", locationQuantityMap);
+
+  // Count risk levels based on TOTAL quantity per location
+  let critical = 0, high = 0, medium = 0, low = 0, normal = 0;
   
-  // Track totals
+  Object.entries(locationQuantityMap).forEach(([location, totalQty]) => {
+    if (totalQty >= 50) {
+      critical++;
+      console.log(`${location} is CRITICAL with ${totalQty} cases`);
+    } else if (totalQty >= 20) {
+      high++;
+      console.log(`${location} is HIGH with ${totalQty} cases`);
+    } else if (totalQty >= 10) {
+      medium++;
+      console.log(`${location} is MEDIUM with ${totalQty} cases`);
+    } else if (totalQty >= 5) {
+      low++;
+      console.log(`${location} is LOW with ${totalQty} cases`);
+    } else {
+      normal++;
+      console.log(`${location} is NORMAL with ${totalQty} cases`);
+    }
+  });
+
+  // Count crime types
+  let murders = 0, rape = 0, robbery = 0, kidnapping = 0, drugs = 0, others = 0;
   let totalCases = 0;
   let maxQuantity = 0;
   let hotspot = null;
-  
+
   zones.forEach(zone => {
-    // Use enhancedZone properties, not raw data keys
     const type = zone.type;
     const quantity = Number(zone.quantity) || 0;
     
-    // Add to total cases
     totalCases += quantity;
-    
-    // Track max quantity for hotspot
+
+    // Find hotspot (highest individual crime quantity, not location total)
     if (quantity > maxQuantity) {
       maxQuantity = quantity;
       hotspot = zone;
     }
-    
-    // Count by crime type
-    if (type === "হত্যা" || type === "খুন") {
-      murders++;
-    } else if (type === "ধর্ষণ") {
-      rape++;
-    } else if (type === "ডাকাতি") {
-      robbery++;
-    } else if (type === "অপহরণ") {
-      kidnapping++;
-    } else if (type === "মাদক") {
-      drugs++;
-    } else {
-      others++;
-    }
+
+    if (type === "হত্যা" || type === "খুন") murders++;
+    else if (type === "ধর্ষণ") rape++;
+    else if (type === "ডাকাতি") robbery++;
+    else if (type === "অপহরণ") kidnapping++;
+    else if (type === "মাদক") drugs++;
+    else others++;
   });
 
-  // Calculate risk level counts (using quantity from enhancedZones)
-  const riskCounts = {
-    critical: zones.filter(z => z.quantity >= 50).length,
-    high: zones.filter(z => z.quantity >= 20 && z.quantity < 50).length,
-    medium: zones.filter(z => z.quantity >= 10 && z.quantity < 20).length,
-    low: zones.filter(z => z.quantity >= 5 && z.quantity < 10).length,
-    normal: zones.filter(z => z.quantity < 5).length
-  };
+  const riskCounts = { critical, high, medium, low, normal };
+  console.log("Final risk counts:", riskCounts);
 
-  const stats = {
-    total: uniqueLocations,
-    murders: murders,
-    rape: rape,
-    robbery: robbery,
-    kidnapping: kidnapping,
-    drugs: drugs,
-    others: others,
-    totalCases: totalCases,
-    maxQuantity: maxQuantity,
-    hotspot: hotspot,
-    riskCounts: riskCounts
+  return {
+    total: Object.keys(locationQuantityMap).length, // Unique locations
+    murders, rape, robbery, kidnapping, drugs, others,
+    totalCases, maxQuantity, hotspot,
+    riskCounts
   };
-
-  return stats;
 };
 
 export const getTimePeriodStatistics = (zones) => {
@@ -267,16 +264,28 @@ const convertBengaliToEnglish = (bengaliNum) => {
 };
 
 export const enhanceZones = (zones) => {
+  // First, calculate total quantity per location for risk assessment
+  const locationTotalMap = {};
+  zones.forEach(zone => {
+    const loc = zone["Crime Location"];
+    locationTotalMap[loc] = (locationTotalMap[loc] || 0) + (zone["Crime quantity"] || 0);
+  });
+
   return zones.map(zone => {
     const date = parseBengaliDate(zone["Crime date"]);
-    const risk = getRiskLevel(zone["Crime quantity"]);
+    const location = zone["Crime Location"];
+    const totalLocationQuantity = locationTotalMap[location] || zone["Crime quantity"];
+    
+    // Use TOTAL location quantity for risk level, not individual crime quantity
+    const risk = getRiskLevel(totalLocationQuantity);
     
     return {
-      id: `${zone["Crime Location"]}-${zone["Crime Type"]}-${zone["Crime date"]}-${zone["Crime period"]}`,
-      main_area: zone["Crime Location"],
-      sub_area: zone["Crime Location"],
+      id: `${location}-${zone["Crime Type"]}-${zone["Crime date"]}-${zone["Crime period"]}`,
+      main_area: location,
+      sub_area: location,
       type: zone["Crime Type"],
       quantity: zone["Crime quantity"],
+      totalLocationQuantity: totalLocationQuantity, // Add total for reference
       location: [zone.latitude, zone.longitude],
       date: zone["Crime date"],
       dateObj: date,
