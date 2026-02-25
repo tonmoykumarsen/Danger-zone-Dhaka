@@ -6,7 +6,7 @@ export const LANGUAGES = {
 export const TRANSLATIONS = {
   [LANGUAGES.BN]: {
     // App
-    appName: 'ডেঞ্জারজোন',
+    appName: 'BDSafe',
     appSubtitle: 'বাংলাদেশ - অপরাধ মানচিত্র',
     
     // Header
@@ -25,10 +25,11 @@ export const TRANSLATIONS = {
     night: 'রাত (৮-১২টা)',
     midnight: 'মধ্যরাত (১২-৬টা)',
     dawn: 'ভোর (৪-৬টা)',
-    unknown: 'অজানা',
+    unknown: 'অন্যান্য',
     
     // Crime types
     murder: 'হত্যা',
+    Killing: 'খুন',
     rape: 'ধর্ষণ',
     robbery: 'ডাকাতি',
     kidnapping: 'অপহরণ',
@@ -122,7 +123,7 @@ export const TRANSLATIONS = {
   
   [LANGUAGES.EN]: {
     // App
-    appName: 'DANGERZONE',
+    appName: 'BDSafe',
     appSubtitle: 'Bangladesh - Crime Map',
     
     // Header
