@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 export const LANGUAGES = {
   BN: 'bn',
@@ -124,7 +124,7 @@ export const TRANSLATIONS = {
   
   [LANGUAGES.EN]: {
     // App
-    appName: 'DANGERZONE',
+    appName: 'BDSafe',
     appSubtitle: 'Bangladesh - Crime Map',
     
     // Header

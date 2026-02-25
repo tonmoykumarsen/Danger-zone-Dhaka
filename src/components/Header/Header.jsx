@@ -28,12 +28,13 @@ const Header = ({
   },
   onAdvancedFilterChange = () => {},
   locations = [],
-  activeFilterCount = 0
+  activeFilterCount = 0,
+  showAdvancedFilters = false,
+  setShowAdvancedFilters = () => {}
 }) => {
-  const { t } = useLanguage(); // Removed 'language' since it's not used
+  const { t } = useLanguage();
   const [isMobile, setIsMobile] = useState(false);
   const [showTimeFilters, setShowTimeFilters] = useState(false);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -334,7 +335,7 @@ const Header = ({
         </div>
       )}
 
-      {/* Advanced Filters Panel */}
+      {/* Advanced Filters Panel - Positioned absolutely above everything */}
       {showAdvancedFilters && (
         <div style={{
           position: 'fixed',
@@ -348,11 +349,15 @@ const Header = ({
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'center',
-          paddingTop: '80px'
+          paddingTop: '80px',
+          pointerEvents: 'none'
         }}
         onClick={() => setShowAdvancedFilters(false)}
         >
-          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ 
+            position: 'relative',
+            pointerEvents: 'auto'
+          }} onClick={(e) => e.stopPropagation()}>
             <AdvancedFilterPanel
               filters={advancedFilters}
               onFilterChange={onAdvancedFilterChange}

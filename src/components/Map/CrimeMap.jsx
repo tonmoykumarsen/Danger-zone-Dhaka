@@ -2,11 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { BANGLADESH_CENTER, DEFAULT_ZOOM, TYPE_CONFIG } from "../../constants/config";
-import { formatBengaliDate } from "../../utils/helpers"; // Removed getRiskLevel
+import { formatBengaliDate } from "../../utils/helpers";
 import "../../styles/map.css";
-
-// Rest of the file remains the same...
-// (Keep all the existing code, just remove the unused import)
 
 // Fix for default markers
 delete L.Icon.Default.prototype._getIconUrl;
@@ -122,7 +119,7 @@ const HoverModal = ({ zone, position }) => {
   );
 };
 
-const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) => {
+const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, isModalOpen = false }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
@@ -138,6 +135,11 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
       zoomControl: false,
       fadeAnimation: true,
       markerZoomAnimation: true,
+      dragging: !isModalOpen,
+      scrollWheelZoom: !isModalOpen,
+      doubleClickZoom: !isModalOpen,
+      boxZoom: !isModalOpen,
+      keyboard: !isModalOpen,
     });
 
     // Use CartoDB dark theme (free, no authentication required)
@@ -157,7 +159,26 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [isModalOpen]);
+
+  // Update map interactions when modal state changes
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      if (isModalOpen) {
+        mapInstanceRef.current.dragging.disable();
+        mapInstanceRef.current.scrollWheelZoom.disable();
+        mapInstanceRef.current.doubleClickZoom.disable();
+        mapInstanceRef.current.boxZoom.disable();
+        mapInstanceRef.current.keyboard.disable();
+      } else {
+        mapInstanceRef.current.dragging.enable();
+        mapInstanceRef.current.scrollWheelZoom.enable();
+        mapInstanceRef.current.doubleClickZoom.enable();
+        mapInstanceRef.current.boxZoom.enable();
+        mapInstanceRef.current.keyboard.enable();
+      }
+    }
+  }, [isModalOpen]);
 
   // Update markers when zones change
   useEffect(() => {
@@ -189,16 +210,18 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
 
       // Add hover events
       marker.on('mouseover', () => {
-        onZoneHover(zone);
-        marker.setZIndexOffset(2000);
-        
-        // Calculate position for hover modal
-        const point = mapInstanceRef.current.latLngToContainerPoint(zone.location);
-        setHoverModal({
-          visible: true,
-          zone: zone,
-          position: { x: point.x, y: point.y - 50 }
-        });
+        if (!isModalOpen) { // Only allow hover when modal is closed
+          onZoneHover(zone);
+          marker.setZIndexOffset(2000);
+          
+          // Calculate position for hover modal
+          const point = mapInstanceRef.current.latLngToContainerPoint(zone.location);
+          setHoverModal({
+            visible: true,
+            zone: zone,
+            position: { x: point.x, y: point.y - 50 }
+          });
+        }
       });
       
       marker.on('mouseout', () => {
@@ -208,8 +231,10 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
       });
       
       marker.on('click', () => {
-        onZoneClick(index);
-        marker.openPopup();
+        if (!isModalOpen) { // Only allow click when modal is closed
+          onZoneClick(index);
+          marker.openPopup();
+        }
       });
 
       // Create detailed popup content
@@ -290,22 +315,22 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
         mapInstanceRef.current.fitBounds(bounds, { padding: [60, 60], animate: true });
       }
     }
-  }, [zones, onZoneHover, onZoneClick]);
+  }, [zones, onZoneHover, onZoneClick, isModalOpen]);
 
   // Handle active zone
   useEffect(() => {
-    if (activeZone !== null && markersRef.current[activeZone] && zones && zones[activeZone]) {
+    if (activeZone !== null && markersRef.current[activeZone] && zones && zones[activeZone] && !isModalOpen) {
       markersRef.current[activeZone].openPopup();
       mapInstanceRef.current.panTo(zones[activeZone].location, { animate: true, duration: 0.5 });
     }
-  }, [activeZone, zones]);
+  }, [activeZone, zones, isModalOpen]);
 
   // Handle hovered zone
   useEffect(() => {
-    if (hoveredZone !== null && markersRef.current[hoveredZone]) {
+    if (hoveredZone !== null && markersRef.current[hoveredZone] && !isModalOpen) {
       markersRef.current[hoveredZone].setZIndexOffset(2000);
     }
-  }, [hoveredZone]);
+  }, [hoveredZone, isModalOpen]);
 
   // Calculate total quantity per location for accurate risk assessment
   const calculateLocationStats = () => {
@@ -349,7 +374,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
     let lowCount = 0;
     let normalCount = 0;
 
-    locationMap.forEach((data, location) => {
+    locationMap.forEach((data) => {
       totalCases += data.totalQuantity;
       
       // Determine risk level based on TOTAL quantity
@@ -374,7 +399,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
       mediumCount: mediumCount,
       lowCount: lowCount,
       normalCount: normalCount,
-      highRiskCount: criticalCount + highCount // Combined high + critical
+      highRiskCount: criticalCount + highCount
     };
   };
 
@@ -384,8 +409,8 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
       
-      {/* Hover Modal */}
-      {hoverModal.visible && <HoverModal zone={hoverModal.zone} position={hoverModal.position} />}
+      {/* Hover Modal - only show when main modal is closed */}
+      {!isModalOpen && hoverModal.visible && <HoverModal zone={hoverModal.zone} position={hoverModal.position} />}
       
       {/* Map Legend */}
       <div className="map-legend">
@@ -447,29 +472,53 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick }) 
 
       {/* Map Controls */}
       <div className="map-controls">
-        <button className="map-control-btn" onClick={() => mapInstanceRef.current?.setView(BANGLADESH_CENTER, DEFAULT_ZOOM)} title="Reset view">
+        <button 
+          className="map-control-btn" 
+          onClick={() => mapInstanceRef.current?.setView(BANGLADESH_CENTER, DEFAULT_ZOOM)} 
+          title="Reset view"
+          disabled={isModalOpen}
+          style={{ opacity: isModalOpen ? 0.5 : 1, cursor: isModalOpen ? 'not-allowed' : 'pointer' }}
+        >
           <span className="btn-icon">🏠</span>
         </button>
-        <button className="map-control-btn" onClick={() => mapInstanceRef.current?.zoomIn()} title="Zoom in">
+        <button 
+          className="map-control-btn" 
+          onClick={() => mapInstanceRef.current?.zoomIn()} 
+          title="Zoom in"
+          disabled={isModalOpen}
+          style={{ opacity: isModalOpen ? 0.5 : 1, cursor: isModalOpen ? 'not-allowed' : 'pointer' }}
+        >
           <span className="btn-icon">+</span>
         </button>
-        <button className="map-control-btn" onClick={() => mapInstanceRef.current?.zoomOut()} title="Zoom out">
+        <button 
+          className="map-control-btn" 
+          onClick={() => mapInstanceRef.current?.zoomOut()} 
+          title="Zoom out"
+          disabled={isModalOpen}
+          style={{ opacity: isModalOpen ? 0.5 : 1, cursor: isModalOpen ? 'not-allowed' : 'pointer' }}
+        >
           <span className="btn-icon">−</span>
         </button>
-        <button className="map-control-btn" onClick={() => {
-          if (zones?.length > 0) {
-            const validZones = zones.filter(z => z && z.location);
-            if (validZones.length > 0) {
-              const bounds = L.latLngBounds(validZones.map(z => z.location));
-              mapInstanceRef.current?.fitBounds(bounds, { padding: [50, 50] });
+        <button 
+          className="map-control-btn" 
+          onClick={() => {
+            if (zones?.length > 0) {
+              const validZones = zones.filter(z => z && z.location);
+              if (validZones.length > 0) {
+                const bounds = L.latLngBounds(validZones.map(z => z.location));
+                mapInstanceRef.current?.fitBounds(bounds, { padding: [50, 50] });
+              }
             }
-          }
-        }} title="Show all markers">
+          }} 
+          title="Show all markers"
+          disabled={isModalOpen}
+          style={{ opacity: isModalOpen ? 0.5 : 1, cursor: isModalOpen ? 'not-allowed' : 'pointer' }}
+        >
           <span className="btn-icon">⌂</span>
         </button>
       </div>
 
-      {/* Crime Stats Overlay - UPDATED with correct high risk count */}
+      {/* Crime Stats Overlay */}
       <div className="stats-overlay">
         <div className="stats-item">
           <span className="stats-label">Total Locations</span>

@@ -30,6 +30,31 @@ function AppContent() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
+  
+  // Advanced filters state
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({
+    crimeTypes: [],
+    timePeriods: [],
+    dateRange: { start: null, end: null },
+    locations: [],
+    riskLevels: [],
+    quantityRange: { min: 0, max: 1000 },
+    confidenceRange: { min: 0, max: 1 }
+  });
+
+  // Get unique locations for filter dropdown
+  const uniqueLocations = [...new Set(filteredZones.map(z => z.main_area))].sort();
+
+  // Calculate active filter count
+  const activeFilterCount = 
+    (advancedFilters.crimeTypes?.length || 0) +
+    (advancedFilters.timePeriods?.length || 0) +
+    (advancedFilters.locations?.length || 0) +
+    (advancedFilters.riskLevels?.length || 0) +
+    (advancedFilters.dateRange?.start || advancedFilters.dateRange?.end ? 1 : 0) +
+    (advancedFilters.quantityRange?.min > 0 || advancedFilters.quantityRange?.max < 1000 ? 1 : 0) +
+    (advancedFilters.confidenceRange?.min > 0 || advancedFilters.confidenceRange?.max < 1 ? 1 : 0);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -62,6 +87,11 @@ function AppContent() {
     clearActiveZone();
   };
 
+  const handleAdvancedFilterChange = (newFilters) => {
+    setAdvancedFilters(newFilters);
+    console.log('Advanced filters updated:', newFilters);
+  };
+
   const handleZoneClick = (index) => {
     setActiveZone(index);
     if (isMobile) {
@@ -86,6 +116,12 @@ function AppContent() {
         onTimePeriodFilterChange={handleTimePeriodFilterChange}
         areaName={areaName}
         statistics={statistics}
+        advancedFilters={advancedFilters}
+        onAdvancedFilterChange={handleAdvancedFilterChange}
+        locations={uniqueLocations}
+        activeFilterCount={activeFilterCount}
+        showAdvancedFilters={showAdvancedFilters}
+        setShowAdvancedFilters={setShowAdvancedFilters}
       />
 
       <div className="main-container">
@@ -105,7 +141,7 @@ function AppContent() {
           />
         )}
 
-        <div className="map-container">
+        <div className={`map-container ${showAdvancedFilters ? 'modal-open' : ''}`}>
           {isMobile && !showSidebar && (
             <button
               onClick={() => setShowSidebar(true)}
@@ -129,7 +165,7 @@ function AppContent() {
               }}
             >
               <span>📋</span>
-              <span>{showSidebar ? 'Hide' : 'Show'} List</span>
+              <span>Show List</span>
             </button>
           )}
 
@@ -139,6 +175,7 @@ function AppContent() {
             hoveredZone={hoveredZone}
             onZoneHover={handleZoneHover}
             onZoneClick={handleZoneClick}
+            isModalOpen={showAdvancedFilters}
           />
           
           {activeZone && (
