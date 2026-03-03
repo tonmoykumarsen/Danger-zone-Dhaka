@@ -1,4 +1,4 @@
-// components/Sidebar/ZoneCard.jsx
+// src/components/Sidebar/ZoneCard.jsx
 import React, { useState } from "react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -94,7 +94,6 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
       onMouseLeave={handleMouseLeave}
       className={`zone-card ${isHighlighted ? 'highlighted' : ''} ${active ? 'active' : ''}`}
       style={{
-        borderLeftColor: typeConfig.color,
         boxShadow: active ? `0 0 14px ${typeConfig.color}44` : 'none',
         background: colors.surface,
         border: `1px solid ${colors.border}`,
