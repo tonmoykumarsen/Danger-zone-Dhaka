@@ -2,9 +2,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useTheme, THEMES } from "../../context/ThemeContext";
+import { useTheme } from "../../context/ThemeContext";
 import { BANGLADESH_CENTER, DEFAULT_ZOOM, TYPE_CONFIG } from "../../constants/config";
-import { formatBengaliDate } from "../../utils/helpers";
 import "../../styles/map.css";
 
 // Fix for default markers
@@ -15,14 +14,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-// Free tile layers that don't require authentication
-const TILE_LAYERS = {
-  // Light themes - using OSM standard light map
-  osmLight: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+// Light map tile layers
+const LIGHT_TILE_LAYERS = {
   cartoLight: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-  
-  // Dark themes
-  cartoDark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
 };
 
 // Custom marker icons for different crime types
@@ -103,7 +97,7 @@ const HoverModal = ({ zone, position }) => {
 };
 
 const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, isModalOpen = false }) => {
-  const { theme, colors } = useTheme();
+  const { colors } = useTheme();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
@@ -113,7 +107,6 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    // Create map instance
     mapInstanceRef.current = L.map(mapRef.current, {
       center: BANGLADESH_CENTER,
       zoom: DEFAULT_ZOOM,
@@ -122,10 +115,11 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
       markerZoomAnimation: true,
     });
 
-    // Always start with light theme map
-    L.tileLayer(TILE_LAYERS.osmLight, {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    // Add light map tiles
+    L.tileLayer(LIGHT_TILE_LAYERS.cartoLight, {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
       maxZoom: 19,
+      subdomains: 'abcd',
     }).addTo(mapInstanceRef.current);
 
     // Add scale control
@@ -186,7 +180,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
       markersRef.current[index] = marker;
 
       // Add hover events
-      marker.on('mouseover', (e) => {
+      marker.on('mouseover', () => {
         if (!isModalOpen) {
           onZoneHover(zone);
           marker.setZIndexOffset(2000);
@@ -215,33 +209,33 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
 
       // Create popup
       const popupContent = `
-        <div style="font-family: 'DM Sans', sans-serif; min-width: 250px;">
-          <div style="border-bottom: 2px solid ${typeConfig.color}; padding: 8px; background: ${colors.surface};">
-            <div style="font-weight: bold; font-size: 14px; color: ${colors.text.primary};">${zone.main_area}</div>
-            <div style="font-size: 11px; color: ${colors.text.muted};">${zone.main_area}</div>
+        <div style="font-family: 'DM Sans', sans-serif; min-width: 250px; background: white; border-radius: 8px; overflow: hidden;">
+          <div style="border-left: 4px solid ${typeConfig.color}; padding: 12px; background: #f8fafc;">
+            <div style="font-weight: bold; font-size: 16px; color: #0f172a;">${zone.main_area}</div>
+            <div style="font-size: 12px; color: #475569;">${zone.main_area}</div>
           </div>
-          <div style="padding: 8px; background: ${colors.surface2};">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div style="padding: 12px; background: white;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div>
-                <div style="font-size: 9px; color: ${colors.text.muted};">Type</div>
-                <div style="color: ${typeConfig.color}; font-weight: 600;">${typeConfig.icon} ${typeConfig.badge}</div>
+                <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Crime Type</div>
+                <div style="color: ${typeConfig.color}; font-weight: 600; font-size: 13px;">${typeConfig.icon} ${typeConfig.badge}</div>
               </div>
               <div>
-                <div style="font-size: 9px; color: ${colors.text.muted};">Cases</div>
-                <div style="color: ${typeConfig.color}; font-weight: bold;">${zone.quantity}</div>
+                <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Cases</div>
+                <div style="color: ${typeConfig.color}; font-weight: bold; font-size: 16px;">${zone.quantity}</div>
               </div>
               <div>
-                <div style="font-size: 9px; color: ${colors.text.muted};">Risk</div>
-                <div style="color: ${zone.risk.color};">${zone.risk.emoji} ${zone.risk.label}</div>
+                <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Risk Level</div>
+                <div style="color: ${zone.risk.color}; font-weight: 600; font-size: 13px;">${zone.risk.emoji} ${zone.risk.label}</div>
               </div>
               <div>
-                <div style="font-size: 9px; color: ${colors.text.muted};">Time</div>
-                <div style="color: ${colors.text.primary};">${zone.period}</div>
+                <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Time</div>
+                <div style="color: #334155; font-size: 13px;">${zone.period}</div>
               </div>
             </div>
           </div>
-          <div style="padding: 8px; background: ${colors.surface}; border-top: 1px solid ${colors.border};">
-            <div style="font-size: 9px; color: ${colors.text.muted};">📍 ${zone.location[0].toFixed(4)}, ${zone.location[1].toFixed(4)}</div>
+          <div style="padding: 8px 12px; background: #f1f5f9; border-top: 1px solid #e2e8f0; font-size: 11px; color: #475569;">
+            📍 ${zone.location[0].toFixed(4)}, ${zone.location[1].toFixed(4)} • ${zone.date}
           </div>
         </div>
       `;
@@ -260,7 +254,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
         mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], animate: true });
       }
     }
-  }, [zones, onZoneHover, onZoneClick, isModalOpen, colors]);
+  }, [zones, onZoneHover, onZoneClick, isModalOpen]);
 
   // Handle active zone
   useEffect(() => {
@@ -269,6 +263,13 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
       mapInstanceRef.current.panTo(zones[activeZone].location, { animate: true, duration: 0.5 });
     }
   }, [activeZone, zones, isModalOpen]);
+
+  // Handle hovered zone
+  useEffect(() => {
+    if (hoveredZone !== null && markersRef.current[hoveredZone] && !isModalOpen) {
+      markersRef.current[hoveredZone].setZIndexOffset(2000);
+    }
+  }, [hoveredZone, isModalOpen]);
 
   // Calculate stats
   const calculateLocationStats = () => {
@@ -311,7 +312,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
       {/* Hover Modal */}
       {!isModalOpen && hoverModal.visible && <HoverModal zone={hoverModal.zone} position={hoverModal.position} />}
       
-      {/* Map Legend - Simple and clean */}
+      {/* Map Legend */}
       <div style={{
         position: 'absolute',
         bottom: 20,
