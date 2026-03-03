@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useTheme } from "../../context/ThemeContext";
 import { BANGLADESH_CENTER, DEFAULT_ZOOM, TYPE_CONFIG } from "../../constants/config";
 import "../../styles/map.css";
 
@@ -40,8 +39,6 @@ const createCustomIcon = (typeConfig, quantity, isHovered = false) => {
 
 // Hover Modal Component
 const HoverModal = ({ zone, position }) => {
-  const { colors } = useTheme();
-  
   if (!zone || !position) return null;
 
   const typeConfig = zone.typeConfig;
@@ -54,11 +51,11 @@ const HoverModal = ({ zone, position }) => {
         position: 'fixed',
         left: position.x,
         top: position.y,
-        background: colors.surface,
-        border: `1px solid ${colors.border}`,
+        background: 'white',
+        border: '1px solid #e2e8f0',
         borderRadius: '8px',
         padding: '12px',
-        boxShadow: colors.shadow,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
         zIndex: 2000,
         minWidth: '250px',
         transform: 'translate(-50%, -100%)',
@@ -66,30 +63,30 @@ const HoverModal = ({ zone, position }) => {
       }}
     >
       <div style={{ borderLeft: `4px solid ${typeConfig.color}`, paddingLeft: '8px', marginBottom: '8px' }}>
-        <div style={{ fontWeight: 'bold', color: colors.text.primary }}>{zone.main_area}</div>
-        <div style={{ fontSize: '11px', color: colors.text.muted }}>{zone.sub_area}</div>
+        <div style={{ fontWeight: 'bold', color: '#0f172a' }}>{zone.main_area}</div>
+        <div style={{ fontSize: '11px', color: '#64748b' }}>{zone.main_area}</div>
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11px' }}>
         <div>
-          <div style={{ color: colors.text.muted }}>Type</div>
+          <div style={{ color: '#64748b' }}>Type</div>
           <div style={{ color: typeConfig.color, fontWeight: 600 }}>{typeConfig.icon} {typeConfig.badge}</div>
         </div>
         <div>
-          <div style={{ color: colors.text.muted }}>Cases</div>
+          <div style={{ color: '#64748b' }}>Cases</div>
           <div style={{ color: typeConfig.color, fontWeight: 'bold' }}>{zone.quantity}</div>
         </div>
         <div>
-          <div style={{ color: colors.text.muted }}>Risk</div>
+          <div style={{ color: '#64748b' }}>Risk</div>
           <div style={{ color: risk.color }}>{risk.emoji} {risk.label}</div>
         </div>
         <div>
-          <div style={{ color: colors.text.muted }}>Time</div>
-          <div style={{ color: colors.text.primary }}>{zone.period}</div>
+          <div style={{ color: '#64748b' }}>Time</div>
+          <div style={{ color: '#0f172a' }}>{zone.period}</div>
         </div>
       </div>
       
-      <div style={{ marginTop: '8px', fontSize: '10px', color: colors.text.muted, borderTop: `1px solid ${colors.border}`, paddingTop: '4px' }}>
+      <div style={{ marginTop: '8px', fontSize: '10px', color: '#64748b', borderTop: '1px solid #e2e8f0', paddingTop: '4px' }}>
         Click for details →
       </div>
     </div>
@@ -97,7 +94,6 @@ const HoverModal = ({ zone, position }) => {
 };
 
 const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, isModalOpen = false }) => {
-  const { colors } = useTheme();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
