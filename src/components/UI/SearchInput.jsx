@@ -1,6 +1,9 @@
+// components/UI/SearchInput.js (updated with theme)
 import React, { useState } from "react";
+import { useTheme } from "../../context/ThemeContext";
 
 const SearchInput = ({ value, onChange, placeholder = "Search...", compact = false }) => {
+  const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
 
   if (compact) {
@@ -15,13 +18,13 @@ const SearchInput = ({ value, onChange, placeholder = "Search...", compact = fal
           style={{
             width: "100%",
             padding: "8px 30px 8px 30px",
-            background: "#0f0f1a",
-            border: `1px solid ${isFocused ? "#ff2d2d55" : "#1e1e30"}`,
+            background: colors.surface2,
+            border: `1px solid ${isFocused ? colors.accent.red + '55' : colors.border}`,
             borderRadius: 20,
             fontSize: 11,
-            color: "#e2e8f0",
+            color: colors.text.primary,
             outline: "none",
-            boxShadow: isFocused ? "0 0 0 2px #ff2d2d1a" : "none",
+            boxShadow: isFocused ? `0 0 0 2px ${colors.accent.red}1a` : "none",
             transition: "all 0.2s"
           }}
         />
@@ -31,7 +34,7 @@ const SearchInput = ({ value, onChange, placeholder = "Search...", compact = fal
           top: "50%",
           transform: "translateY(-50%)",
           fontSize: 11,
-          color: "#475569",
+          color: colors.text.muted,
           pointerEvents: "none"
         }}>
           🔍
@@ -45,7 +48,7 @@ const SearchInput = ({ value, onChange, placeholder = "Search...", compact = fal
       <span style={{
         position: "absolute", left: 12, top: "50%",
         transform: "translateY(-50%)", fontSize: 13,
-        color: "#475569", pointerEvents: "none"
+        color: colors.text.muted, pointerEvents: "none"
       }}>
         🔍
       </span>
@@ -59,13 +62,13 @@ const SearchInput = ({ value, onChange, placeholder = "Search...", compact = fal
         style={{
           width: "100%",
           padding: "10px 40px 10px 35px",
-          background: "#0f0f1a",
-          border: `1px solid ${isFocused ? "#ff2d2d55" : "#1e1e30"}`,
+          background: colors.surface2,
+          border: `1px solid ${isFocused ? colors.accent.red + '55' : colors.border}`,
           borderRadius: 8,
           fontSize: 13,
-          color: "#e2e8f0",
+          color: colors.text.primary,
           outline: "none",
-          boxShadow: isFocused ? "0 0 0 2px #ff2d2d1a" : "none",
+          boxShadow: isFocused ? `0 0 0 2px ${colors.accent.red}1a` : "none",
           transition: "all 0.2s"
         }}
       />
@@ -74,8 +77,8 @@ const SearchInput = ({ value, onChange, placeholder = "Search...", compact = fal
         position: "absolute", right: 12, top: "50%",
         transform: "translateY(-50%)", fontSize: 10,
         padding: "2px 6px", borderRadius: 4,
-        border: "1px solid #1e1e30", color: "#475569",
-        background: "#0a0a14", pointerEvents: "none"
+        border: `1px solid ${colors.border}`, color: colors.text.muted,
+        background: colors.surface, pointerEvents: "none"
       }}>
         ⌘K
       </span>

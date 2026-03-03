@@ -1,5 +1,7 @@
+// components/Sidebar/Sidebar.jsx
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useTheme } from "../../context/ThemeContext";
 import StatsBar from "./StatsBar";
 import ZoneCard from "./ZoneCard";
 import { getRiskLevel } from "../../utils/helpers";
@@ -18,6 +20,7 @@ const Sidebar = ({
   onClose 
 }) => {
   const { t, language } = useLanguage();
+  const { colors } = useTheme();
   const [viewMode, setViewMode] = useState('district');
   const [expandedDistrict, setExpandedDistrict] = useState(null);
   const [hoveredDistrict, setHoveredDistrict] = useState(null);
@@ -154,22 +157,22 @@ const Sidebar = ({
 
   const getDistrictRiskLevel = (district) => {
     const data = districtData[district];
-    if (!data) return { label: t('normal'), color: "#3b82f6", emoji: "ℹ️" };
+    if (!data) return { label: t('normal'), color: colors.risk.normal, emoji: "ℹ️" };
     
     // Determine district risk based on highest risk level present
     if (data.riskLevels.critical > 0) {
-      return { label: t('critical'), color: "#ff2d2d", emoji: "🔥" };
+      return { label: t('critical'), color: colors.risk.critical, emoji: "🔥" };
     }
     if (data.riskLevels.high > 0) {
-      return { label: t('high'), color: "#ff6b1a", emoji: "⚠️" };
+      return { label: t('high'), color: colors.risk.high, emoji: "⚠️" };
     }
     if (data.riskLevels.medium > 0) {
-      return { label: t('medium'), color: "#f0a500", emoji: "⚡" };
+      return { label: t('medium'), color: colors.risk.medium, emoji: "⚡" };
     }
     if (data.riskLevels.low > 0) {
-      return { label: t('low'), color: "#22c55e", emoji: "✅" };
+      return { label: t('low'), color: colors.risk.low, emoji: "✅" };
     }
-    return { label: t('normal'), color: "#3b82f6", emoji: "ℹ️" };
+    return { label: t('normal'), color: colors.risk.normal, emoji: "ℹ️" };
   };
 
   const toggleDateExpansion = (date) => {
@@ -284,16 +287,16 @@ const Sidebar = ({
       width: 380,
       display: 'flex',
       flexDirection: 'column',
-      background: '#0a0a14',
-      borderRight: '1px solid #1a1a2e',
+      background: colors.surface,
+      borderRight: `1px solid ${colors.border}`,
       overflow: 'hidden',
       position: 'relative',
       height: '100%'
     }}>
       <div style={{
         padding: '16px',
-        borderBottom: '1px solid #1a1a2e',
-        background: '#0d0d18',
+        borderBottom: `1px solid ${colors.border}`,
+        background: colors.surface2,
         flexShrink: 0
       }}>
         <div style={{ 
@@ -302,7 +305,7 @@ const Sidebar = ({
           alignItems: 'center',
           marginBottom: '12px'
         }}>
-          <h2 style={{ fontSize: '18px', color: '#f1f5f9', margin: 0 }}>
+          <h2 style={{ fontSize: '18px', color: colors.text.primary, margin: 0 }}>
             {t('bangladeshCrimeMap')}
           </h2>
           
@@ -312,9 +315,9 @@ const Sidebar = ({
               className="close-btn"
               style={{
                 background: 'transparent',
-                border: '1px solid #1e1e30',
+                border: `1px solid ${colors.border}`,
                 borderRadius: '6px',
-                color: '#94a3b8',
+                color: colors.text.secondary,
                 width: '32px',
                 height: '32px',
                 fontSize: '16px',
@@ -324,7 +327,7 @@ const Sidebar = ({
                 justifyContent: 'center',
                 transition: 'all 0.2s'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#1e1e30'}
+              onMouseEnter={(e) => e.currentTarget.style.background = colors.surface3}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
               ✕
@@ -335,10 +338,10 @@ const Sidebar = ({
         <div style={{
           display: 'flex',
           gap: '4px',
-          background: '#0a0a14',
+          background: colors.surface,
           padding: '4px',
           borderRadius: '8px',
-          border: '1px solid #1e1e30',
+          border: `1px solid ${colors.border}`,
           marginBottom: '12px'
         }}>
           {viewModes.map(mode => {
@@ -351,10 +354,10 @@ const Sidebar = ({
                 style={{
                   flex: 1,
                   padding: '8px 4px',
-                  background: isActive ? '#1e1e30' : 'transparent',
+                  background: isActive ? colors.surface3 : 'transparent',
                   border: 'none',
                   borderRadius: '6px',
-                  color: isActive ? '#f1f5f9' : '#64748b',
+                  color: isActive ? colors.text.primary : colors.text.muted,
                   fontSize: '11px',
                   fontWeight: isActive ? '600' : '400',
                   cursor: 'pointer',
@@ -365,7 +368,7 @@ const Sidebar = ({
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
-                  if (!isActive) e.currentTarget.style.background = '#1a1a2a';
+                  if (!isActive) e.currentTarget.style.background = colors.surface2;
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) e.currentTarget.style.background = 'transparent';
@@ -394,12 +397,12 @@ const Sidebar = ({
               top: hoverPosition.y,
               width: '280px',
               maxWidth: '90vw',
-              background: '#1a1a2a',
-              border: '1px solid #ff2d2d66',
+              background: colors.surface2,
+              border: `1px solid ${colors.accent.red}66`,
               borderRadius: '12px',
               padding: '16px',
               zIndex: 1000,
-              boxShadow: '0 8px 30px rgba(0,0,0,0.8)',
+              boxShadow: colors.shadow,
               animation: 'fadeIn 0.2s ease',
               pointerEvents: 'auto'
             }}
@@ -409,15 +412,15 @@ const Sidebar = ({
               justifyContent: 'space-between',
               alignItems: 'center',
               marginBottom: '12px',
-              borderBottom: '1px solid #1e1e30',
+              borderBottom: `1px solid ${colors.border}`,
               paddingBottom: '8px'
             }}>
-              <h3 style={{ fontSize: '14px', color: '#f1f5f9', margin: 0 }}>
+              <h3 style={{ fontSize: '14px', color: colors.text.primary, margin: 0 }}>
                 📍 {hoveredLocation}
               </h3>
               <span style={{
-                background: '#ff2d2d22',
-                color: '#ff2d2d',
+                background: `${colors.accent.red}22`,
+                color: colors.accent.red,
                 padding: '2px 8px',
                 borderRadius: '12px',
                 fontSize: '10px',
@@ -429,7 +432,7 @@ const Sidebar = ({
             
             {/* Total Cases for this location */}
             <div style={{
-              background: '#0f0f1a',
+              background: colors.surface,
               borderRadius: '6px',
               padding: '8px',
               marginBottom: '12px',
@@ -437,13 +440,13 @@ const Sidebar = ({
               justifyContent: 'space-between',
               alignItems: 'center'
             }}>
-              <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+              <span style={{ fontSize: '10px', color: colors.text.secondary }}>
                 {language === 'bn' ? 'মোট মামলা:' : 'Total Cases:'}
               </span>
               <span style={{ 
                 fontSize: '14px', 
                 fontWeight: 'bold',
-                color: locationHistory[hoveredLocation][0]?.risk?.color || '#ff2d2d'
+                color: locationHistory[hoveredLocation][0]?.risk?.color || colors.accent.red
               }}>
                 {getLocationTotal(hoveredLocation)}
               </span>
@@ -456,7 +459,7 @@ const Sidebar = ({
                   style={{
                     padding: '10px',
                     marginBottom: '8px',
-                    background: '#0f0f1a',
+                    background: colors.surface,
                     borderRadius: '8px',
                     borderLeft: `4px solid ${crime.typeConfig.color}`,
                     cursor: 'pointer',
@@ -468,14 +471,14 @@ const Sidebar = ({
                     setHoveredLocation(null);
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#1a1a2a';
+                    e.currentTarget.style.background = colors.surface2;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#0f0f1a';
+                    e.currentTarget.style.background = colors.surface;
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#f1f5f9' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '600', color: colors.text.primary }}>
                       {crime.typeConfig.icon} {language === 'bn' ? crime.type : crime.typeConfig.description?.split('/')[0]?.trim() || crime.type}
                     </span>
                     <span style={{ fontSize: '11px', color: crime.risk.color }}>
@@ -488,7 +491,7 @@ const Sidebar = ({
                       }[crime.risk.label] || crime.risk.label}
                     </span>
                   </div>
-                  <div style={{ fontSize: '10px', color: '#64748b', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: '10px', color: colors.text.muted, display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <span>{crime.date}</span>
                     <span>•</span>
                     <span>{crime.period}</span>
@@ -501,10 +504,10 @@ const Sidebar = ({
               {locationHistory[hoveredLocation].length > 5 && (
                 <div style={{
                   fontSize: '10px',
-                  color: '#475569',
+                  color: colors.text.muted,
                   textAlign: 'center',
                   padding: '8px',
-                  background: '#0a0a14',
+                  background: colors.surface,
                   borderRadius: '6px',
                   marginTop: '4px'
                 }}>
@@ -525,7 +528,7 @@ const Sidebar = ({
               justifyContent: 'space-between',
               marginBottom: '12px',
               fontSize: '12px',
-              color: '#64748b',
+              color: colors.text.muted,
               padding: '0 4px'
             }}>
               <span>{t('totalDistricts', { count: Object.keys(districtData).length })}</span>
@@ -549,8 +552,8 @@ const Sidebar = ({
                     style={{
                       marginBottom: '12px',
                       borderRadius: '10px',
-                      background: isHovered ? '#13131f' : '#0f0f1a',
-                      border: `1px solid ${isHovered ? districtRisk.color + '66' : '#1e1e30'}`,
+                      background: isHovered ? colors.surface2 : colors.surface,
+                      border: `1px solid ${isHovered ? districtRisk.color + '66' : colors.border}`,
                       overflow: 'hidden',
                       transition: 'all 0.2s ease',
                       transform: isHovered ? 'translateX(4px)' : 'none',
@@ -573,7 +576,7 @@ const Sidebar = ({
                           <h3 style={{ 
                             fontSize: '16px', 
                             fontWeight: '600', 
-                            color: '#f1f5f9', 
+                            color: colors.text.primary, 
                             margin: 0 
                           }}>
                             {district}
@@ -592,9 +595,9 @@ const Sidebar = ({
                             <span>{districtRisk.label}</span>
                           </span>
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        <div style={{ fontSize: '11px', color: colors.text.muted }}>
                           <span>{data.crimes}{t('locations')} • </span>
-                          <span style={{ color: '#ff2d2d', fontWeight: '600' }}>{totalLocationQty}</span>
+                          <span style={{ color: colors.accent.red, fontWeight: '600' }}>{totalLocationQty}</span>
                           <span>{t('cases')} total</span>
                         </div>
                       </div>
@@ -610,14 +613,14 @@ const Sidebar = ({
                         }}
                       >
                         <div style={{
-                          background: '#0a0a14',
+                          background: colors.surface,
                           borderRadius: '8px',
                           padding: '12px',
                           marginBottom: '10px'
                         }}>
                           <div style={{ 
                             fontSize: '10px', 
-                            color: '#475569', 
+                            color: colors.text.muted, 
                             marginBottom: '8px', 
                             textTransform: 'uppercase',
                             letterSpacing: '0.5px'
@@ -631,39 +634,39 @@ const Sidebar = ({
                           }}>
                             {data.riskLevels.critical > 0 && (
                               <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#ff2d2d' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: colors.risk.critical }}>
                                   {data.riskLevels.critical}
                                 </div>
-                                <div style={{ fontSize: '8px', color: '#64748b' }}>{t('criticalRisk')}</div>
+                                <div style={{ fontSize: '8px', color: colors.text.muted }}>{t('criticalRisk')}</div>
                               </div>
                             )}
                             {data.riskLevels.high > 0 && (
                               <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#ff6b1a' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: colors.risk.high }}>
                                   {data.riskLevels.high}
                                 </div>
-                                <div style={{ fontSize: '8px', color: '#64748b' }}>{t('highRisk')}</div>
+                                <div style={{ fontSize: '8px', color: colors.text.muted }}>{t('highRisk')}</div>
                               </div>
                             )}
                             {data.riskLevels.medium > 0 && (
                               <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#f0a500' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: colors.risk.medium }}>
                                   {data.riskLevels.medium}
                                 </div>
-                                <div style={{ fontSize: '8px', color: '#64748b' }}>{t('mediumRisk')}</div>
+                                <div style={{ fontSize: '8px', color: colors.text.muted }}>{t('mediumRisk')}</div>
                               </div>
                             )}
                           </div>
                         </div>
 
                         <div style={{
-                          background: '#0a0a14',
+                          background: colors.surface,
                           borderRadius: '8px',
                           padding: '12px'
                         }}>
                           <div style={{ 
                             fontSize: '10px', 
-                            color: '#475569', 
+                            color: colors.text.muted, 
                             marginBottom: '8px', 
                             textTransform: 'uppercase',
                             letterSpacing: '0.5px'
@@ -678,12 +681,12 @@ const Sidebar = ({
                               marginBottom: '6px',
                               fontSize: '11px',
                               padding: '4px 0',
-                              borderBottom: '1px solid #1e1e30'
+                              borderBottom: `1px solid ${colors.border}`
                             }}>
                               <span style={{ color: typeData.color, display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 {type}
                               </span>
-                              <span style={{ color: '#94a3b8' }}>
+                              <span style={{ color: colors.text.secondary }}>
                                 {typeData.quantity}{t('cases')}
                               </span>
                             </div>
@@ -692,14 +695,14 @@ const Sidebar = ({
 
                         {/* Recent History */}
                         <div style={{
-                          background: '#0a0a14',
+                          background: colors.surface,
                           borderRadius: '8px',
                           padding: '12px',
                           marginTop: '10px'
                         }}>
                           <div style={{ 
                             fontSize: '10px', 
-                            color: '#475569', 
+                            color: colors.text.muted, 
                             marginBottom: '8px', 
                             textTransform: 'uppercase',
                             letterSpacing: '0.5px',
@@ -714,19 +717,19 @@ const Sidebar = ({
                             <div key={idx} style={{
                               padding: '8px',
                               marginBottom: '6px',
-                              background: '#0f0f1a',
+                              background: colors.surface,
                               borderRadius: '6px',
                               fontSize: '10px'
                             }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                                <span style={{ color: item.typeConfig?.color || '#94a3b8' }}>
+                                <span style={{ color: item.typeConfig?.color || colors.text.secondary }}>
                                   {item.typeConfig?.icon} {language === 'bn' ? item.type : item.typeConfig?.description?.split('/')[0]?.trim() || item.type}
                                 </span>
                                 <span style={{ color: item.risk.color }}>
                                   {item.risk.emoji} {item.quantity}
                                 </span>
                               </div>
-                              <div style={{ color: '#64748b' }}>
+                              <div style={{ color: colors.text.muted }}>
                                 {item.date} • {item.period}
                               </div>
                             </div>
@@ -746,7 +749,7 @@ const Sidebar = ({
             <div style={{ 
               marginBottom: '12px', 
               fontSize: '11px', 
-              color: '#64748b',
+              color: colors.text.muted,
               padding: '0 4px'
             }}>
               {language === 'bn' ? 'লাল রঙের গভীরতা = ঝুঁকির মাত্রা' : 'Red intensity = risk level'}
@@ -772,8 +775,8 @@ const Sidebar = ({
                       padding: '14px',
                       marginBottom: '10px',
                       borderRadius: '10px',
-                      background: `linear-gradient(90deg, ${districtRisk.color}${Math.floor(intensity * 100)} 0%, #0f0f1a ${intensity * 100}%)`,
-                      border: `1px solid ${isHovered ? districtRisk.color + '66' : '#1e1e30'}`,
+                      background: `linear-gradient(90deg, ${districtRisk.color}${Math.floor(intensity * 100)} 0%, ${colors.surface} ${intensity * 100}%)`,
+                      border: `1px solid ${isHovered ? districtRisk.color + '66' : colors.border}`,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                       transform: isHovered ? 'translateX(4px)' : 'none'
@@ -782,7 +785,7 @@ const Sidebar = ({
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                          <h4 style={{ margin: 0, fontSize: '15px', color: '#f1f5f9' }}>{district}</h4>
+                          <h4 style={{ margin: 0, fontSize: '15px', color: colors.text.primary }}>{district}</h4>
                           <span style={{
                             fontSize: '9px',
                             padding: '2px 4px',
@@ -793,7 +796,7 @@ const Sidebar = ({
                             {districtRisk.emoji}
                           </span>
                         </div>
-                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                        <span style={{ fontSize: '11px', color: colors.text.secondary }}>
                           {data.crimes}{t('locations')} • {totalQty}{t('cases')} total
                         </span>
                       </div>
@@ -818,7 +821,7 @@ const Sidebar = ({
             <div style={{ 
               marginBottom: '12px', 
               fontSize: '11px', 
-              color: '#64748b',
+              color: colors.text.muted,
               padding: '0 4px'
             }}>
               {language === 'bn' ? 'তারিখ অনুযায়ী সাজানো (সর্বশেষ ২০টি)' : 'Sorted by date (last 20)'}
@@ -831,33 +834,33 @@ const Sidebar = ({
               return (
                 <div key={date} style={{ marginBottom: '12px' }}>
                   <div style={{
-                    background: '#0f0f1a',
+                    background: colors.surface,
                     borderRadius: '10px',
-                    border: `1px solid ${hasCritical ? '#ff2d2d66' : '#1e1e30'}`,
+                    border: `1px solid ${hasCritical ? colors.accent.red + '66' : colors.border}`,
                     overflow: 'hidden'
                   }}>
                     <div
                       onClick={() => toggleDateExpansion(date)}
                       style={{
                         padding: '12px 14px',
-                        background: '#0a0a14',
-                        borderBottom: isExpanded ? '1px solid #1e1e30' : 'none',
+                        background: colors.surface2,
+                        borderBottom: isExpanded ? `1px solid ${colors.border}` : 'none',
                         cursor: 'pointer',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         transition: 'background 0.2s'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = '#13131f'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = '#0a0a14'}
+                      onMouseEnter={(e) => e.currentTarget.style.background = colors.surface3}
+                      onMouseLeave={(e) => e.currentTarget.style.background = colors.surface2}
                     >
                       <div>
-                        <span style={{ fontWeight: '600', color: '#f1f5f9', fontSize: '13px' }}>{date}</span>
-                        <span style={{ marginLeft: '8px', fontSize: '11px', color: '#64748b' }}>
+                        <span style={{ fontWeight: '600', color: colors.text.primary, fontSize: '13px' }}>{date}</span>
+                        <span style={{ marginLeft: '8px', fontSize: '11px', color: colors.text.muted }}>
                           {crimes.length}{language === 'bn' ? 'টি ঘটনা' : ' events'} • {totalCases}{t('cases')}
                         </span>
                       </div>
-                      <span style={{ color: '#94a3b8', fontSize: '12px' }}>
+                      <span style={{ color: colors.text.secondary, fontSize: '12px' }}>
                         {isExpanded ? '▼' : '▶'}
                       </span>
                     </div>
@@ -876,7 +879,7 @@ const Sidebar = ({
                             style={{
                               padding: '10px 12px',
                               marginBottom: '6px',
-                              background: '#0a0a14',
+                              background: colors.surface,
                               borderRadius: '8px',
                               fontSize: '11px',
                               display: 'flex',
@@ -890,7 +893,7 @@ const Sidebar = ({
                           >
                             <div style={{ flex: 1 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                <span style={{ fontWeight: '600', color: '#f1f5f9' }}>{crime.main_area}</span>
+                                <span style={{ fontWeight: '600', color: colors.text.primary }}>{crime.main_area}</span>
                                 <span style={{
                                   fontSize: '9px',
                                   padding: '2px 4px',
@@ -907,7 +910,7 @@ const Sidebar = ({
                                   }[crime.risk.label] || crime.risk.label}
                                 </span>
                               </div>
-                              <div style={{ display: 'flex', gap: '8px', color: '#64748b' }}>
+                              <div style={{ display: 'flex', gap: '8px', color: colors.text.muted }}>
                                 <span>{crime.period}</span>
                                 <span>•</span>
                                 <span>{crime.typeConfig.icon} {language === 'bn' ? crime.type : crime.typeConfig.description?.split('/')[0]?.trim() || crime.type}</span>
@@ -941,7 +944,7 @@ const Sidebar = ({
               justifyContent: 'space-between',
               marginBottom: '12px',
               fontSize: '11px',
-              color: '#64748b',
+              color: colors.text.muted,
               padding: '0 4px'
             }}>
               <span>{language === 'bn' ? `মোট ${zones.length}টি ঘটনা` : `Total ${zones.length} events`}</span>
@@ -973,10 +976,10 @@ const Sidebar = ({
 
       <div style={{
         padding: '12px 16px',
-        borderTop: '1px solid #1a1a2e',
-        background: '#0d0d18',
+        borderTop: `1px solid ${colors.border}`,
+        background: colors.surface2,
         fontSize: '11px',
-        color: '#64748b',
+        color: colors.text.muted,
         display: 'flex',
         justifyContent: 'space-between',
         flexShrink: 0

@@ -1,5 +1,7 @@
+// components/UI/AdvancedFilterPanel.js (updated with theme)
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import { CRIME_TYPE_FILTERS, TIME_PERIODS } from '../../constants/config';
 
 const AdvancedFilterPanel = ({ 
@@ -17,6 +19,7 @@ const AdvancedFilterPanel = ({
   locations = [] 
 }) => {
   const { language } = useLanguage();
+  const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState('crime');
 
   const handleCrimeTypeToggle = (type) => {
@@ -106,11 +109,11 @@ const AdvancedFilterPanel = ({
   };
 
   const riskLevels = [
-    { value: 'critical', label: language === 'bn' ? 'সবচেয়ে ঝুঁকিপূর্ণ' : 'Critical', color: "#ff2d2d", emoji: "🔥" },
-    { value: 'high', label: language === 'bn' ? 'উচ্চ ঝুঁকি' : 'High', color: "#ff6b1a", emoji: "⚠️" },
-    { value: 'medium', label: language === 'bn' ? 'মাঝারি ঝুঁকি' : 'Medium', color: "#f0a500", emoji: "⚡" },
-    { value: 'low', label: language === 'bn' ? 'নিম্ন ঝুঁকি' : 'Low', color: "#22c55e", emoji: "✅" },
-    { value: 'normal', label: language === 'bn' ? 'স্বাভাবিক' : 'Normal', color: "#3b82f6", emoji: "ℹ️" }
+    { value: 'critical', label: language === 'bn' ? 'সবচেয়ে ঝুঁকিপূর্ণ' : 'Critical', color: colors.risk.critical, emoji: "🔥" },
+    { value: 'high', label: language === 'bn' ? 'উচ্চ ঝুঁকি' : 'High', color: colors.risk.high, emoji: "⚠️" },
+    { value: 'medium', label: language === 'bn' ? 'মাঝারি ঝুঁকি' : 'Medium', color: colors.risk.medium, emoji: "⚡" },
+    { value: 'low', label: language === 'bn' ? 'নিম্ন ঝুঁকি' : 'Low', color: colors.risk.low, emoji: "✅" },
+    { value: 'normal', label: language === 'bn' ? 'স্বাভাবিক' : 'Normal', color: colors.risk.normal, emoji: "ℹ️" }
   ];
 
   return (
@@ -122,12 +125,12 @@ const AdvancedFilterPanel = ({
       maxWidth: '90vw',
       maxHeight: '80vh',
       overflowY: 'auto',
-      background: '#1a1a2a',
-      border: '1px solid #ff2d2d66',
+      background: colors.surface2,
+      border: `1px solid ${colors.accent.red}66`,
       borderRadius: '12px',
       padding: '16px',
       zIndex: 2000,
-      boxShadow: '0 8px 30px rgba(0,0,0,0.8)',
+      boxShadow: colors.shadow,
       animation: 'slideDown 0.2s ease'
     }}>
       {/* Header */}
@@ -136,15 +139,15 @@ const AdvancedFilterPanel = ({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: '16px',
-        borderBottom: '1px solid #1e1e30',
+        borderBottom: `1px solid ${colors.border}`,
         paddingBottom: '12px'
       }}>
-        <h3 style={{ fontSize: '14px', color: '#f1f5f9', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h3 style={{ fontSize: '14px', color: colors.text.primary, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span>🔍</span>
           <span>{language === 'bn' ? 'উন্নত ফিল্টার' : 'Advanced Filters'}</span>
           {getActiveFilterCount() > 0 && (
             <span style={{
-              background: '#ff2d2d',
+              background: colors.accent.red,
               color: 'white',
               borderRadius: '12px',
               padding: '2px 8px',
@@ -160,7 +163,7 @@ const AdvancedFilterPanel = ({
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#94a3b8',
+            color: colors.text.secondary,
             cursor: 'pointer',
             fontSize: '18px',
             width: '28px',
@@ -171,7 +174,7 @@ const AdvancedFilterPanel = ({
             borderRadius: '6px',
             transition: 'all 0.2s'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#1e1e30'}
+          onMouseEnter={(e) => e.currentTarget.style.background = colors.surface3}
           onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
         >
           ✕
@@ -183,7 +186,7 @@ const AdvancedFilterPanel = ({
         display: 'flex',
         gap: '4px',
         marginBottom: '16px',
-        borderBottom: '1px solid #1e1e30',
+        borderBottom: `1px solid ${colors.border}`,
         paddingBottom: '8px',
         flexWrap: 'wrap'
       }}>
@@ -198,10 +201,10 @@ const AdvancedFilterPanel = ({
             onClick={() => setActiveTab(tab.id)}
             style={{
               padding: '8px 12px',
-              background: activeTab === tab.id ? '#ff2d2d22' : 'transparent',
-              border: `1px solid ${activeTab === tab.id ? '#ff2d2d66' : '#1e1e30'}`,
+              background: activeTab === tab.id ? `${colors.accent.red}22` : 'transparent',
+              border: `1px solid ${activeTab === tab.id ? colors.accent.red + '66' : colors.border}`,
               borderRadius: '20px',
-              color: activeTab === tab.id ? '#ff2d2d' : '#94a3b8',
+              color: activeTab === tab.id ? colors.accent.red : colors.text.secondary,
               fontSize: '11px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -223,14 +226,14 @@ const AdvancedFilterPanel = ({
           <div style={{ marginBottom: '16px' }}>
             <div style={{
               fontSize: '11px',
-              color: '#94a3b8',
+              color: colors.text.secondary,
               marginBottom: '8px',
               display: 'flex',
               justifyContent: 'space-between'
             }}>
               <span>{language === 'bn' ? 'অপরাধের ধরন নির্বাচন করুন:' : 'Select crime types:'}</span>
               {filters.crimeTypes?.length > 0 && (
-                <span style={{ color: '#ff2d2d' }}>{filters.crimeTypes.length} selected</span>
+                <span style={{ color: colors.accent.red }}>{filters.crimeTypes.length} selected</span>
               )}
             </div>
             <div style={{
@@ -246,10 +249,10 @@ const AdvancedFilterPanel = ({
                     onClick={() => handleCrimeTypeToggle(type)}
                     style={{
                       padding: '8px',
-                      background: isSelected ? '#ff2d2d22' : '#0f0f1a',
-                      border: `1px solid ${isSelected ? '#ff2d2d66' : '#1e1e30'}`,
+                      background: isSelected ? `${colors.accent.red}22` : colors.surface,
+                      border: `1px solid ${isSelected ? colors.accent.red + '66' : colors.border}`,
                       borderRadius: '6px',
-                      color: isSelected ? '#ff2d2d' : '#94a3b8',
+                      color: isSelected ? colors.accent.red : colors.text.secondary,
                       fontSize: '11px',
                       cursor: 'pointer',
                       display: 'flex',
@@ -259,14 +262,14 @@ const AdvancedFilterPanel = ({
                       transition: 'all 0.2s'
                     }}
                     onMouseEnter={(e) => {
-                      if (!isSelected) e.currentTarget.style.background = '#1a1a2a';
+                      if (!isSelected) e.currentTarget.style.background = colors.surface3;
                     }}
                     onMouseLeave={(e) => {
-                      if (!isSelected) e.currentTarget.style.background = '#0f0f1a';
+                      if (!isSelected) e.currentTarget.style.background = colors.surface;
                     }}
                   >
                     <span>{type}</span>
-                    {isSelected && <span style={{ color: '#ff2d2d' }}>✓</span>}
+                    {isSelected && <span style={{ color: colors.accent.red }}>✓</span>}
                   </button>
                 );
               })}
@@ -281,14 +284,14 @@ const AdvancedFilterPanel = ({
           <div style={{ marginBottom: '16px' }}>
             <div style={{
               fontSize: '11px',
-              color: '#94a3b8',
+              color: colors.text.secondary,
               marginBottom: '8px',
               display: 'flex',
               justifyContent: 'space-between'
             }}>
               <span>{language === 'bn' ? 'সময় নির্বাচন করুন:' : 'Select time periods:'}</span>
               {filters.timePeriods?.length > 0 && (
-                <span style={{ color: '#ff2d2d' }}>{filters.timePeriods.length} selected</span>
+                <span style={{ color: colors.accent.red }}>{filters.timePeriods.length} selected</span>
               )}
             </div>
             <div style={{
@@ -304,10 +307,10 @@ const AdvancedFilterPanel = ({
                     onClick={() => handleTimePeriodToggle(period.value)}
                     style={{
                       padding: '8px',
-                      background: isSelected ? `${period.color}22` : '#0f0f1a',
-                      border: `1px solid ${isSelected ? period.color + '66' : '#1e1e30'}`,
+                      background: isSelected ? `${period.color}22` : colors.surface,
+                      border: `1px solid ${isSelected ? period.color + '66' : colors.border}`,
                       borderRadius: '6px',
-                      color: isSelected ? period.color : '#94a3b8',
+                      color: isSelected ? period.color : colors.text.secondary,
                       fontSize: '10px',
                       cursor: 'pointer',
                       display: 'flex',
@@ -317,10 +320,10 @@ const AdvancedFilterPanel = ({
                       transition: 'all 0.2s'
                     }}
                     onMouseEnter={(e) => {
-                      if (!isSelected) e.currentTarget.style.background = '#1a1a2a';
+                      if (!isSelected) e.currentTarget.style.background = colors.surface3;
                     }}
                     onMouseLeave={(e) => {
-                      if (!isSelected) e.currentTarget.style.background = '#0f0f1a';
+                      if (!isSelected) e.currentTarget.style.background = colors.surface;
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -338,7 +341,7 @@ const AdvancedFilterPanel = ({
           <div style={{ marginBottom: '16px' }}>
             <div style={{
               fontSize: '11px',
-              color: '#94a3b8',
+              color: colors.text.secondary,
               marginBottom: '8px'
             }}>
               {language === 'bn' ? 'তারিখের সীমা:' : 'Date range:'}
@@ -352,10 +355,10 @@ const AdvancedFilterPanel = ({
                 style={{
                   flex: 1,
                   padding: '8px',
-                  background: '#0f0f1a',
-                  border: '1px solid #1e1e30',
+                  background: colors.surface,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: '6px',
-                  color: '#e2e8f0',
+                  color: colors.text.primary,
                   fontSize: '11px',
                   fontFamily: 'inherit'
                 }}
@@ -368,10 +371,10 @@ const AdvancedFilterPanel = ({
                 style={{
                   flex: 1,
                   padding: '8px',
-                  background: '#0f0f1a',
-                  border: '1px solid #1e1e30',
+                  background: colors.surface,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: '6px',
-                  color: '#e2e8f0',
+                  color: colors.text.primary,
                   fontSize: '11px',
                   fontFamily: 'inherit'
                 }}
@@ -387,14 +390,14 @@ const AdvancedFilterPanel = ({
           <div style={{ marginBottom: '12px' }}>
             <div style={{
               fontSize: '11px',
-              color: '#94a3b8',
+              color: colors.text.secondary,
               marginBottom: '8px',
               display: 'flex',
               justifyContent: 'space-between'
             }}>
               <span>{language === 'bn' ? 'অবস্থান নির্বাচন করুন:' : 'Select locations:'}</span>
               {filters.locations?.length > 0 && (
-                <span style={{ color: '#ff2d2d' }}>{filters.locations.length} selected</span>
+                <span style={{ color: colors.accent.red }}>{filters.locations.length} selected</span>
               )}
             </div>
             <div style={{
@@ -413,10 +416,10 @@ const AdvancedFilterPanel = ({
                     onClick={() => handleLocationToggle(location)}
                     style={{
                       padding: '6px',
-                      background: isSelected ? '#60a5fa22' : '#0f0f1a',
-                      border: `1px solid ${isSelected ? '#60a5fa66' : '#1e1e30'}`,
+                      background: isSelected ? `${colors.accent.blue}22` : colors.surface,
+                      border: `1px solid ${isSelected ? colors.accent.blue + '66' : colors.border}`,
                       borderRadius: '4px',
-                      color: isSelected ? '#60a5fa' : '#94a3b8',
+                      color: isSelected ? colors.accent.blue : colors.text.secondary,
                       fontSize: '10px',
                       cursor: 'pointer',
                       textAlign: 'left',
@@ -428,14 +431,14 @@ const AdvancedFilterPanel = ({
                       alignItems: 'center'
                     }}
                     onMouseEnter={(e) => {
-                      if (!isSelected) e.currentTarget.style.background = '#1a1a2a';
+                      if (!isSelected) e.currentTarget.style.background = colors.surface3;
                     }}
                     onMouseLeave={(e) => {
-                      if (!isSelected) e.currentTarget.style.background = '#0f0f1a';
+                      if (!isSelected) e.currentTarget.style.background = colors.surface;
                     }}
                   >
                     <span>{location}</span>
-                    {isSelected && <span style={{ color: '#60a5fa' }}>✓</span>}
+                    {isSelected && <span style={{ color: colors.accent.blue }}>✓</span>}
                   </button>
                 );
               })}
@@ -443,7 +446,7 @@ const AdvancedFilterPanel = ({
             {locations?.length > 30 && (
               <div style={{
                 fontSize: '10px',
-                color: '#475569',
+                color: colors.text.muted,
                 textAlign: 'center',
                 marginTop: '8px'
               }}>
@@ -460,14 +463,14 @@ const AdvancedFilterPanel = ({
           <div style={{ marginBottom: '16px' }}>
             <div style={{
               fontSize: '11px',
-              color: '#94a3b8',
+              color: colors.text.secondary,
               marginBottom: '8px',
               display: 'flex',
               justifyContent: 'space-between'
             }}>
               <span>{language === 'bn' ? 'ঝুঁকির মাত্রা নির্বাচন করুন:' : 'Select risk levels:'}</span>
               {filters.riskLevels?.length > 0 && (
-                <span style={{ color: '#ff2d2d' }}>{filters.riskLevels.length} selected</span>
+                <span style={{ color: colors.accent.red }}>{filters.riskLevels.length} selected</span>
               )}
             </div>
             <div style={{
@@ -483,10 +486,10 @@ const AdvancedFilterPanel = ({
                     onClick={() => handleRiskLevelToggle(risk.value)}
                     style={{
                       padding: '8px',
-                      background: isSelected ? `${risk.color}22` : '#0f0f1a',
-                      border: `1px solid ${isSelected ? risk.color + '66' : '#1e1e30'}`,
+                      background: isSelected ? `${risk.color}22` : colors.surface,
+                      border: `1px solid ${isSelected ? risk.color + '66' : colors.border}`,
                       borderRadius: '6px',
-                      color: isSelected ? risk.color : '#94a3b8',
+                      color: isSelected ? risk.color : colors.text.secondary,
                       fontSize: '10px',
                       cursor: 'pointer',
                       display: 'flex',
@@ -496,10 +499,10 @@ const AdvancedFilterPanel = ({
                       transition: 'all 0.2s'
                     }}
                     onMouseEnter={(e) => {
-                      if (!isSelected) e.currentTarget.style.background = '#1a1a2a';
+                      if (!isSelected) e.currentTarget.style.background = colors.surface3;
                     }}
                     onMouseLeave={(e) => {
-                      if (!isSelected) e.currentTarget.style.background = '#0f0f1a';
+                      if (!isSelected) e.currentTarget.style.background = colors.surface;
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -517,13 +520,13 @@ const AdvancedFilterPanel = ({
           <div style={{ marginBottom: '16px' }}>
             <div style={{
               fontSize: '11px',
-              color: '#94a3b8',
+              color: colors.text.secondary,
               marginBottom: '8px',
               display: 'flex',
               justifyContent: 'space-between'
             }}>
               <span>{language === 'bn' ? 'মামলার সংখ্যা:' : 'Case quantity:'}</span>
-              <span style={{ color: '#22c55e' }}>
+              <span style={{ color: colors.risk.low }}>
                 {filters.quantityRange?.min || 0} - {filters.quantityRange?.max || 1000}
               </span>
             </div>
@@ -533,7 +536,7 @@ const AdvancedFilterPanel = ({
               max="100"
               value={Math.min(filters.quantityRange?.max || 100, 100)}
               onChange={(e) => handleQuantityChange(filters.quantityRange?.min, parseInt(e.target.value))}
-              style={{ width: '100%', marginBottom: '8px', accentColor: '#22c55e' }}
+              style={{ width: '100%', marginBottom: '8px', accentColor: colors.risk.low }}
             />
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
@@ -545,14 +548,14 @@ const AdvancedFilterPanel = ({
                 style={{
                   flex: 1,
                   padding: '6px',
-                  background: '#0f0f1a',
-                  border: '1px solid #1e1e30',
+                  background: colors.surface,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: '4px',
-                  color: '#e2e8f0',
+                  color: colors.text.primary,
                   fontSize: '11px'
                 }}
               />
-              <span style={{ color: '#64748b', alignSelf: 'center' }}>to</span>
+              <span style={{ color: colors.text.muted, alignSelf: 'center' }}>to</span>
               <input
                 type="number"
                 min="0"
@@ -562,10 +565,10 @@ const AdvancedFilterPanel = ({
                 style={{
                   flex: 1,
                   padding: '6px',
-                  background: '#0f0f1a',
-                  border: '1px solid #1e1e30',
+                  background: colors.surface,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: '4px',
-                  color: '#e2e8f0',
+                  color: colors.text.primary,
                   fontSize: '11px'
                 }}
               />
@@ -576,13 +579,13 @@ const AdvancedFilterPanel = ({
           <div>
             <div style={{
               fontSize: '11px',
-              color: '#94a3b8',
+              color: colors.text.secondary,
               marginBottom: '8px',
               display: 'flex',
               justifyContent: 'space-between'
             }}>
               <span>{language === 'bn' ? 'আত্মবিশ্বাস:' : 'Confidence:'}</span>
-              <span style={{ color: '#3b82f6' }}>
+              <span style={{ color: colors.accent.blue }}>
                 {Math.round((filters.confidenceRange?.min || 0) * 100)}% - {Math.round((filters.confidenceRange?.max || 1) * 100)}%
               </span>
             </div>
@@ -595,7 +598,7 @@ const AdvancedFilterPanel = ({
                 filters.confidenceRange?.min,
                 parseInt(e.target.value) / 100
               )}
-              style={{ width: '100%', accentColor: '#3b82f6' }}
+              style={{ width: '100%', accentColor: colors.accent.blue }}
             />
             <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
               <input
@@ -610,15 +613,15 @@ const AdvancedFilterPanel = ({
                 style={{
                   flex: 1,
                   padding: '6px',
-                  background: '#0f0f1a',
-                  border: '1px solid #1e1e30',
+                  background: colors.surface,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: '4px',
-                  color: '#e2e8f0',
+                  color: colors.text.primary,
                   fontSize: '11px'
                 }}
               />
-              <span style={{ color: '#64748b', alignSelf: 'center' }}>%</span>
-              <span style={{ color: '#64748b', alignSelf: 'center' }}>to</span>
+              <span style={{ color: colors.text.muted, alignSelf: 'center' }}>%</span>
+              <span style={{ color: colors.text.muted, alignSelf: 'center' }}>to</span>
               <input
                 type="number"
                 min="0"
@@ -631,14 +634,14 @@ const AdvancedFilterPanel = ({
                 style={{
                   flex: 1,
                   padding: '6px',
-                  background: '#0f0f1a',
-                  border: '1px solid #1e1e30',
+                  background: colors.surface,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: '4px',
-                  color: '#e2e8f0',
+                  color: colors.text.primary,
                   fontSize: '11px'
                 }}
               />
-              <span style={{ color: '#64748b', alignSelf: 'center' }}>%</span>
+              <span style={{ color: colors.text.muted, alignSelf: 'center' }}>%</span>
             </div>
           </div>
         </div>
@@ -650,16 +653,16 @@ const AdvancedFilterPanel = ({
         justifyContent: 'space-between',
         marginTop: '20px',
         paddingTop: '16px',
-        borderTop: '1px solid #1e1e30'
+        borderTop: `1px solid ${colors.border}`
       }}>
         <button
           onClick={clearAllFilters}
           style={{
             padding: '8px 12px',
             background: 'transparent',
-            border: '1px solid #1e1e30',
+            border: `1px solid ${colors.border}`,
             borderRadius: '6px',
-            color: '#94a3b8',
+            color: colors.text.secondary,
             fontSize: '11px',
             cursor: 'pointer',
             display: 'flex',
@@ -668,12 +671,12 @@ const AdvancedFilterPanel = ({
             transition: 'all 0.2s'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#1e1e30';
-            e.currentTarget.style.color = '#e2e8f0';
+            e.currentTarget.style.background = colors.surface3;
+            e.currentTarget.style.color = colors.text.primary;
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = '#94a3b8';
+            e.currentTarget.style.color = colors.text.secondary;
           }}
         >
           <span>🗑️</span>
@@ -683,10 +686,10 @@ const AdvancedFilterPanel = ({
           onClick={onClose}
           style={{
             padding: '8px 16px',
-            background: '#ff2d2d22',
-            border: '1px solid #ff2d2d66',
+            background: `${colors.accent.red}22`,
+            border: `1px solid ${colors.accent.red}66`,
             borderRadius: '6px',
-            color: '#ff2d2d',
+            color: colors.accent.red,
             fontSize: '11px',
             fontWeight: 600,
             cursor: 'pointer',
@@ -696,10 +699,10 @@ const AdvancedFilterPanel = ({
             transition: 'all 0.2s'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#ff2d2d33';
+            e.currentTarget.style.background = `${colors.accent.red}33`;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = '#ff2d2d22';
+            e.currentTarget.style.background = `${colors.accent.red}22`;
           }}
         >
           <span>✓</span>

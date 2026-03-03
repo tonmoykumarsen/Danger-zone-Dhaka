@@ -1,11 +1,13 @@
+/* components/Sidebar/ZoneCard.css */
+
 .zone-card {
   padding: 14px;
   margin-bottom: 10px;
   border-radius: 10px;
   cursor: pointer;
-  border: 1px solid #1e1e30;
   border-left-width: 4px;
-  background: #0f0f1a;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -13,18 +15,18 @@
 
 .zone-card:hover {
   transform: translateX(5px);
-  background: #13131f;
-  border-color: #2d2d40;
+  background: var(--surface-hover-color);
+  border-color: var(--border-hover-color);
 }
 
 .zone-card.highlighted {
-  background: #13131f;
-  border-color: #2d2d40;
+  background: var(--surface-hover-color);
+  border-color: var(--border-hover-color);
 }
 
 .zone-card.active {
   border-color: inherit;
-  background: #1a1a2a;
+  background: var(--surface-active-color);
   box-shadow: 0 0 20px rgba(255, 45, 45, 0.2);
 }
 
@@ -39,7 +41,6 @@
 .zone-title h4 {
   font-size: 15px;
   font-weight: 700;
-  color: #f1f5f9;
   margin: 0 0 4px 0;
   white-space: nowrap;
   overflow: hidden;
@@ -48,7 +49,6 @@
 
 .sub-area {
   font-size: 12px;
-  color: #64748b;
 }
 
 .zone-quantity {
@@ -67,7 +67,6 @@
 
 .quantity-label {
   font-size: 9px;
-  color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-top: 2px;
@@ -94,14 +93,14 @@
   display: flex;
   gap: 8px;
   font-size: 10px;
-  color: #64748b;
   margin-bottom: 8px;
 }
 
 .zone-details {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #1e1e30;
+  border-top-width: 1px;
+  border-top-style: solid;
   animation: slideDown 0.2s ease;
 }
 
@@ -109,16 +108,13 @@
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #64748b;
   margin-bottom: 8px;
 }
 
 .detail-hint {
   font-size: 10px;
-  color: #475569;
   text-align: center;
   padding: 4px;
-  background: #0a0a14;
   border-radius: 4px;
 }
 

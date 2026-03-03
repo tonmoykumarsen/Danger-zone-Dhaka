@@ -1,4 +1,6 @@
+// components/Layout/HamburgerMenu.js (updated with theme)
 import React, { useState, useEffect, useRef } from "react";
+import { useTheme } from "../../context/ThemeContext";
 
 const HamburgerMenu = ({ 
   crimeTypeFilter, 
@@ -9,6 +11,7 @@ const HamburgerMenu = ({
   timePeriods,
   statistics 
 }) => {
+  const { colors } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
   const [activeTab, setActiveTab] = useState("filters");
@@ -34,10 +37,10 @@ const HamburgerMenu = ({
         style={{
           width: "40px",
           height: "40px",
-          background: "#0f0f1a",
-          border: `1px solid ${isOpen ? "#ff2d2d66" : "#1e1e30"}`,
+          background: colors.surface2,
+          border: `1px solid ${isOpen ? colors.accent.red + '66' : colors.border}`,
           borderRadius: "8px",
-          color: isOpen ? "#ff2d2d" : "#94a3b8",
+          color: isOpen ? colors.accent.red : colors.text.secondary,
           fontSize: "20px",
           cursor: "pointer",
           display: "flex",
@@ -55,9 +58,9 @@ const HamburgerMenu = ({
             right: "-2px",
             width: "10px",
             height: "10px",
-            background: "#ff2d2d",
+            background: colors.accent.red,
             borderRadius: "50%",
-            border: "2px solid #080810"
+            border: `2px solid ${colors.surface}`
           }} />
         )}
       </button>
@@ -72,19 +75,19 @@ const HamburgerMenu = ({
             right: "12px",
             width: "300px",
             maxHeight: "calc(100vh - 90px)",
-            background: "#1a1a2a",
-            border: "1px solid #1e1e30",
+            background: colors.surface2,
+            border: `1px solid ${colors.border}`,
             borderRadius: "12px",
             overflow: "hidden",
             zIndex: 2000,
-            boxShadow: "0 8px 30px rgba(0,0,0,0.8)",
+            boxShadow: colors.shadow,
             animation: "slideIn 0.3s ease"
           }}
         >
           <div style={{
             display: "flex",
-            borderBottom: "1px solid #1e1e30",
-            background: "#0f0f1a"
+            borderBottom: `1px solid ${colors.border}`,
+            background: colors.surface
           }}>
             <button
               onClick={() => setActiveTab("filters")}
@@ -93,8 +96,8 @@ const HamburgerMenu = ({
                 padding: "12px",
                 background: "transparent",
                 border: "none",
-                borderBottom: activeTab === "filters" ? "2px solid #ff2d2d" : "none",
-                color: activeTab === "filters" ? "#ff2d2d" : "#64748b",
+                borderBottom: activeTab === "filters" ? `2px solid ${colors.accent.red}` : "none",
+                color: activeTab === "filters" ? colors.accent.red : colors.text.muted,
                 fontSize: "13px",
                 fontWeight: 600,
                 cursor: "pointer"
@@ -109,8 +112,8 @@ const HamburgerMenu = ({
                 padding: "12px",
                 background: "transparent",
                 border: "none",
-                borderBottom: activeTab === "stats" ? "2px solid #ff2d2d" : "none",
-                color: activeTab === "stats" ? "#ff2d2d" : "#64748b",
+                borderBottom: activeTab === "stats" ? `2px solid ${colors.accent.red}` : "none",
+                color: activeTab === "stats" ? colors.accent.red : colors.text.muted,
                 fontSize: "13px",
                 fontWeight: 600,
                 cursor: "pointer"
@@ -125,7 +128,7 @@ const HamburgerMenu = ({
               <div style={{ marginBottom: "20px" }}>
                 <div style={{
                   fontSize: "11px",
-                  color: "#94a3b8",
+                  color: colors.text.secondary,
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
                   marginBottom: "10px",
@@ -136,8 +139,8 @@ const HamburgerMenu = ({
                   <span>🔫 অপরাধের ধরন</span>
                   {crimeTypeFilter !== "সবগুলো" && (
                     <span style={{
-                      background: "#ff2d2d22",
-                      color: "#ff2d2d",
+                      background: `${colors.accent.red}22`,
+                      color: colors.accent.red,
                       padding: "2px 6px",
                       borderRadius: "4px",
                       fontSize: "9px"
@@ -159,10 +162,10 @@ const HamburgerMenu = ({
                         onClick={() => onCrimeTypeFilterChange(filter)}
                         style={{
                           padding: "8px",
-                          background: isActive ? "#ff2d2d22" : "#0f0f1a",
-                          border: `1px solid ${isActive ? "#ff2d2d66" : "#1e1e30"}`,
+                          background: isActive ? `${colors.accent.red}22` : colors.surface,
+                          border: `1px solid ${isActive ? colors.accent.red + '66' : colors.border}`,
                           borderRadius: "6px",
-                          color: isActive ? "#ff2d2d" : "#94a3b8",
+                          color: isActive ? colors.accent.red : colors.text.secondary,
                           fontSize: "11px",
                           fontWeight: isActive ? 600 : 400,
                           cursor: "pointer",
@@ -179,7 +182,7 @@ const HamburgerMenu = ({
               <div>
                 <div style={{
                   fontSize: "11px",
-                  color: "#94a3b8",
+                  color: colors.text.secondary,
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
                   marginBottom: "10px",
@@ -213,10 +216,10 @@ const HamburgerMenu = ({
                         onClick={() => onTimePeriodFilterChange(period.value)}
                         style={{
                           padding: "10px",
-                          background: isActive ? `${period.color}22` : "#0f0f1a",
-                          border: `1px solid ${isActive ? period.color + "66" : "#1e1e30"}`,
+                          background: isActive ? `${period.color}22` : colors.surface,
+                          border: `1px solid ${isActive ? period.color + '66' : colors.border}`,
                           borderRadius: "6px",
-                          color: isActive ? period.color : "#94a3b8",
+                          color: isActive ? period.color : colors.text.secondary,
                           fontSize: "11px",
                           fontWeight: isActive ? 600 : 400,
                           cursor: "pointer",
@@ -245,10 +248,10 @@ const HamburgerMenu = ({
                     width: "100%",
                     marginTop: "16px",
                     padding: "10px",
-                    background: "#ff2d2d22",
-                    border: "1px solid #ff2d2d66",
+                    background: `${colors.accent.red}22`,
+                    border: `1px solid ${colors.accent.red}66`,
                     borderRadius: "6px",
-                    color: "#ff2d2d",
+                    color: colors.accent.red,
                     fontSize: "11px",
                     fontWeight: 600,
                     cursor: "pointer",
@@ -268,14 +271,14 @@ const HamburgerMenu = ({
           {activeTab === "stats" && statistics && (
             <div style={{ padding: "16px", overflowY: "auto", maxHeight: "400px" }}>
               <div style={{
-                background: "#0f0f1a",
+                background: colors.surface,
                 borderRadius: "8px",
                 padding: "12px",
                 marginBottom: "16px"
               }}>
                 <div style={{
                   fontSize: "11px",
-                  color: "#94a3b8",
+                  color: colors.text.secondary,
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
                   marginBottom: "12px"
@@ -288,29 +291,29 @@ const HamburgerMenu = ({
                   gap: "10px"
                 }}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "18px", fontWeight: "bold", color: "#60a5fa" }}>
+                    <div style={{ fontSize: "18px", fontWeight: "bold", color: colors.accent.blue }}>
                       {statistics.total}
                     </div>
-                    <div style={{ fontSize: "9px", color: "#64748b" }}>মোট ঘটনা</div>
+                    <div style={{ fontSize: "9px", color: colors.text.muted }}>মোট ঘটনা</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "18px", fontWeight: "bold", color: "#60a5fa" }}>
+                    <div style={{ fontSize: "18px", fontWeight: "bold", color: colors.accent.blue }}>
                       {statistics.totalCases}
                     </div>
-                    <div style={{ fontSize: "9px", color: "#64748b" }}>মোট মামলা</div>
+                    <div style={{ fontSize: "9px", color: colors.text.muted }}>মোট মামলা</div>
                   </div>
                 </div>
               </div>
 
               <div style={{
-                background: "#0f0f1a",
+                background: colors.surface,
                 borderRadius: "8px",
                 padding: "12px",
                 marginBottom: "16px"
               }}>
                 <div style={{
                   fontSize: "11px",
-                  color: "#94a3b8",
+                  color: colors.text.secondary,
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
                   marginBottom: "12px"
@@ -322,66 +325,31 @@ const HamburgerMenu = ({
                   gridTemplateColumns: "repeat(2, 1fr)",
                   gap: "8px"
                 }}>
-                  <div style={{ textAlign: "center", background: "#ff2d2d22", padding: "8px", borderRadius: "6px" }}>
-                    <div style={{ fontSize: "16px", fontWeight: "bold", color: "#ff2d2d" }}>
+                  <div style={{ textAlign: "center", background: `${colors.risk.critical}22`, padding: "8px", borderRadius: "6px" }}>
+                    <div style={{ fontSize: "16px", fontWeight: "bold", color: colors.risk.critical }}>
                       {statistics.riskCounts.critical}
                     </div>
-                    <div style={{ fontSize: "8px", color: "#ff2d2d" }}>সবচেয়ে ঝুঁকিপূর্ণ</div>
+                    <div style={{ fontSize: "8px", color: colors.risk.critical }}>সবচেয়ে ঝুঁকিপূর্ণ</div>
                   </div>
-                  <div style={{ textAlign: "center", background: "#ff6b1a22", padding: "8px", borderRadius: "6px" }}>
-                    <div style={{ fontSize: "16px", fontWeight: "bold", color: "#ff6b1a" }}>
+                  <div style={{ textAlign: "center", background: `${colors.risk.high}22`, padding: "8px", borderRadius: "6px" }}>
+                    <div style={{ fontSize: "16px", fontWeight: "bold", color: colors.risk.high }}>
                       {statistics.riskCounts.high}
                     </div>
-                    <div style={{ fontSize: "8px", color: "#ff6b1a" }}>উচ্চ ঝুঁকি</div>
+                    <div style={{ fontSize: "8px", color: colors.risk.high }}>উচ্চ ঝুঁকি</div>
                   </div>
-                  <div style={{ textAlign: "center", background: "#f0a50022", padding: "8px", borderRadius: "6px" }}>
-                    <div style={{ fontSize: "16px", fontWeight: "bold", color: "#f0a500" }}>
+                  <div style={{ textAlign: "center", background: `${colors.risk.medium}22`, padding: "8px", borderRadius: "6px" }}>
+                    <div style={{ fontSize: "16px", fontWeight: "bold", color: colors.risk.medium }}>
                       {statistics.riskCounts.medium}
                     </div>
-                    <div style={{ fontSize: "8px", color: "#f0a500" }}>মাঝারি ঝুঁকি</div>
+                    <div style={{ fontSize: "8px", color: colors.risk.medium }}>মাঝারি ঝুঁকি</div>
                   </div>
-                  <div style={{ textAlign: "center", background: "#22c55e22", padding: "8px", borderRadius: "6px" }}>
-                    <div style={{ fontSize: "16px", fontWeight: "bold", color: "#22c55e" }}>
+                  <div style={{ textAlign: "center", background: `${colors.risk.low}22`, padding: "8px", borderRadius: "6px" }}>
+                    <div style={{ fontSize: "16px", fontWeight: "bold", color: colors.risk.low }}>
                       {statistics.riskCounts.low}
                     </div>
-                    <div style={{ fontSize: "8px", color: "#22c55e" }}>নিম্ন ঝুঁকি</div>
+                    <div style={{ fontSize: "8px", color: colors.risk.low }}>নিম্ন ঝুঁকি</div>
                   </div>
                 </div>
-              </div>
-
-              <div style={{
-                background: "#0f0f1a",
-                borderRadius: "8px",
-                padding: "12px"
-              }}>
-                <div style={{
-                  fontSize: "11px",
-                  color: "#94a3b8",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  marginBottom: "12px"
-                }}>
-                  🔫 অপরাধের ধরন
-                </div>
-                {[
-                  { label: "হত্যা", value: statistics.murders, color: "#ff2d2d" },
-                  { label: "ধর্ষণ", value: statistics.rape, color: "#ff6b1a" },
-                  { label: "ডাকাতি", value: statistics.robbery, color: "#ff4500" },
-                  { label: "অপহরণ", value: statistics.kidnapping, color: "#f0a500" },
-                  { label: "মাদক", value: statistics.drugs, color: "#22c55e" },
-                  { label: "অন্যান্য", value: statistics.others, color: "#6b7280" }
-                ].map(item => (
-                  <div key={item.label} style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "8px",
-                    fontSize: "11px"
-                  }}>
-                    <span style={{ color: "#94a3b8" }}>{item.label}</span>
-                    <span style={{ color: item.color, fontWeight: 600 }}>{item.value}</span>
-                  </div>
-                ))}
               </div>
             </div>
           )}

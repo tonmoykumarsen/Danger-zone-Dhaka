@@ -1,6 +1,7 @@
+// src/hooks/useZones.js
 import { useState, useMemo } from "react";
-import { CRIME_DATA } from "../constants/data";
 import { filterZones, enhanceZones, getStatistics, getTimePeriodStatistics } from "../utils/helpers";
+import { rawCrimeData } from "../constants/data";  // Updated path to constants/data.js
 
 export const useZones = () => {
   const [crimeTypeFilter, setCrimeTypeFilter] = useState("সবগুলো");
@@ -8,65 +9,69 @@ export const useZones = () => {
   const [search, setSearch] = useState("");
   const [activeZoneIndex, setActiveZoneIndex] = useState(null);
   const [hoveredZone, setHoveredZone] = useState(null);
-  const [sortBy, setSortBy] = useState("quantity");
+  const [sortBy, setSortBy] = useState("risk");
   const [sortOrder, setSortOrder] = useState("desc");
 
-  const filteredZones = useMemo(() => 
-    filterZones(CRIME_DATA.zones, crimeTypeFilter, timePeriodFilter, search),
-    [crimeTypeFilter, timePeriodFilter, search]
-  );
+  // Enhance raw data with additional properties
+  const enhancedZones = useMemo(() => {
+    if (!rawCrimeData || rawCrimeData.length === 0) return [];
+    return enhanceZones(rawCrimeData);
+  }, []);
 
+  // Apply filters
+  const filteredZones = useMemo(() => {
+    return filterZones(enhancedZones, crimeTypeFilter, timePeriodFilter, search);
+  }, [enhancedZones, crimeTypeFilter, timePeriodFilter, search]);
+
+  // Calculate statistics
+  const statistics = useMemo(() => {
+    return getStatistics(filteredZones);
+  }, [filteredZones]);
+
+  const timePeriodStatistics = useMemo(() => {
+    return getTimePeriodStatistics(filteredZones);
+  }, [filteredZones]);
+
+  // Sort zones
   const sortedZones = useMemo(() => {
-    let sorted = [...filteredZones];
+    if (!filteredZones || filteredZones.length === 0) return [];
     
-    switch(sortBy) {
-      case "quantity":
-        sorted.sort((a, b) => sortOrder === "desc" 
-          ? b["Crime quantity"] - a["Crime quantity"]
-          : a["Crime quantity"] - b["Crime quantity"]);
-        break;
-      case "date":
-        sorted.sort((a, b) => {
-          const dateA = a.dateObj || new Date(0);
-          const dateB = b.dateObj || new Date(0);
-          return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
-        });
-        break;
-      case "location":
-        sorted.sort((a, b) => sortOrder === "desc"
-          ? (b["Crime Location"] || "").localeCompare(a["Crime Location"] || "")
-          : (a["Crime Location"] || "").localeCompare(b["Crime Location"] || ""));
-        break;
-      default:
-        break;
-    }
-    
-    return sorted;
+    return [...filteredZones].sort((a, b) => {
+      if (sortBy === "risk") {
+        const riskOrder = { critical: 4, high: 3, medium: 2, low: 1, normal: 0 };
+        const riskA = riskOrder[a.riskLevel?.toLowerCase()] || 0;
+        const riskB = riskOrder[b.riskLevel?.toLowerCase()] || 0;
+        return sortOrder === "desc" ? riskB - riskA : riskA - riskB;
+      }
+      if (sortBy === "quantity") {
+        return sortOrder === "desc" 
+          ? (b.quantity || 0) - (a.quantity || 0)
+          : (a.quantity || 0) - (b.quantity || 0);
+      }
+      if (sortBy === "date") {
+        return sortOrder === "desc"
+          ? (b.date || "").localeCompare(a.date || "")
+          : (a.date || "").localeCompare(b.date || "");
+      }
+      return 0;
+    });
   }, [filteredZones, sortBy, sortOrder]);
 
-  const enhancedZones = useMemo(() => 
-    enhanceZones(sortedZones),
-    [sortedZones]
-  );
-
-  const statistics = useMemo(() => 
-    getStatistics(filteredZones),
-    [filteredZones]
-  );
-
-  const timePeriodStatistics = useMemo(() => 
-    getTimePeriodStatistics(filteredZones),
-    [filteredZones]
-  );
+  const areaName = useMemo(() => {
+    return "Bangladesh Crime Map";
+  }, []);
 
   const setActiveZone = (index) => {
-    setActiveZoneIndex(prev => prev === index ? null : index);
+    setActiveZoneIndex(index);
   };
 
-  const clearActiveZone = () => setActiveZoneIndex(null);
-  
-  const setHovered = (zone) => setHoveredZone(zone);
-  const clearHovered = () => setHoveredZone(null);
+  const clearActiveZone = () => {
+    setActiveZoneIndex(null);
+  };
+
+  const setHovered = (zone) => {
+    setHoveredZone(zone);
+  };
 
   const toggleSort = (field) => {
     if (sortBy === field) {
@@ -78,12 +83,11 @@ export const useZones = () => {
   };
 
   return {
-    allZones: CRIME_DATA.zones,
-    filteredZones: enhancedZones,
-    originalFilteredZones: filteredZones,
+    zones: sortedZones,
+    filteredZones: sortedZones,
     statistics,
     timePeriodStatistics,
-    areaName: CRIME_DATA.area,
+    areaName,
     crimeTypeFilter,
     setCrimeTypeFilter,
     timePeriodFilter,
@@ -95,7 +99,6 @@ export const useZones = () => {
     clearActiveZone,
     hoveredZone,
     setHovered,
-    clearHovered,
     sortBy,
     sortOrder,
     toggleSort

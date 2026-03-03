@@ -1,7 +1,10 @@
+// src/components/Map/MapMarker.jsx
 import React from "react";
+import { useTheme } from "../../context/ThemeContext";
 import { getTypeConfig, getRiskLevel, calculateMarkerSize } from "../../utils/helpers";
 
 const MapMarker = ({ zone, isActive, isHovered, onClick }) => {
+  const { colors } = useTheme();
   const config = getTypeConfig(zone.type);
   const risk = getRiskLevel(zone.quantity);
   const size = calculateMarkerSize(zone.quantity);
@@ -42,11 +45,15 @@ const MapMarker = ({ zone, isActive, isHovered, onClick }) => {
 
       {/* Tooltip on hover */}
       {isHovered && (
-        <div className="marker-tooltip">
-          <div className="tooltip-header">
+        <div className="marker-tooltip" style={{
+          background: colors.surface2,
+          border: `1px solid ${colors.border}`,
+          boxShadow: colors.shadow,
+        }}>
+          <div className="tooltip-header" style={{ color: colors.text.primary }}>
             <strong>{zone.main_area}</strong> - {zone.sub_area}
           </div>
-          <div className="tooltip-body">
+          <div className="tooltip-body" style={{ color: colors.text.secondary }}>
             <span style={{ color: config.color }}>{config.badge}</span>
             <span> | Risk: {risk.label}</span>
           </div>

@@ -1,6 +1,10 @@
+// utils/helpers.js
+
 import { TYPE_CONFIG, RISK_LEVELS, TIME_PERIODS } from "../constants/config";
 
 export const getTypeConfig = (crimeType) => {
+  if (!crimeType) return TYPE_CONFIG["অন্যান্য"];
+  
   if (TYPE_CONFIG[crimeType]) {
     return TYPE_CONFIG[crimeType];
   }
@@ -81,26 +85,30 @@ export const getMonthNumber = (bengaliMonth) => {
 };
 
 export const applyCrimeTypeFilter = (zones, crimeTypeFilter) => {
+  if (!zones || zones.length === 0) return [];
   if (crimeTypeFilter === "সবগুলো") return zones;
   return zones.filter(zone => zone["Crime Type"] === crimeTypeFilter);
 };
 
 export const applyTimePeriodFilter = (zones, timePeriodFilter) => {
+  if (!zones || zones.length === 0) return [];
   if (timePeriodFilter === "সব সময়") return zones;
   return zones.filter(zone => zone["Crime period"] === timePeriodFilter);
 };
 
 export const applySearchFilter = (zones, search) => {
+  if (!zones || zones.length === 0) return [];
   const searchLower = search.toLowerCase().trim();
   if (!searchLower) return zones;
   
   return zones.filter(zone => 
-    zone["Crime Location"].toLowerCase().includes(searchLower) ||
-    zone["Crime Type"].toLowerCase().includes(searchLower)
+    (zone["Crime Location"] && zone["Crime Location"].toLowerCase().includes(searchLower)) ||
+    (zone["Crime Type"] && zone["Crime Type"].toLowerCase().includes(searchLower))
   );
 };
 
 export const filterZones = (zones, crimeTypeFilter, timePeriodFilter, search) => {
+  if (!zones || zones.length === 0) return [];
   let filtered = zones;
   filtered = applyCrimeTypeFilter(filtered, crimeTypeFilter);
   filtered = applyTimePeriodFilter(filtered, timePeriodFilter);
@@ -126,7 +134,7 @@ export const getStatistics = (zones) => {
   const locationCrimesMap = {}; // Store all crimes per location for hotspot detection
   
   zones.forEach(zone => {
-    const loc = zone.main_area;
+    const loc = zone.main_area || "Unknown";
     const quantity = Number(zone.quantity) || 0;
     
     // Sum quantities per location
@@ -264,17 +272,19 @@ const convertBengaliToEnglish = (bengaliNum) => {
 };
 
 export const enhanceZones = (zones) => {
+  if (!zones || zones.length === 0) return [];
+  
   // First, calculate total quantity per location for risk assessment
   const locationTotalMap = {};
   zones.forEach(zone => {
-    const loc = zone["Crime Location"];
+    const loc = zone["Crime Location"] || "Unknown";
     locationTotalMap[loc] = (locationTotalMap[loc] || 0) + (zone["Crime quantity"] || 0);
   });
 
   return zones.map(zone => {
     const date = parseBengaliDate(zone["Crime date"]);
-    const location = zone["Crime Location"];
-    const totalLocationQuantity = locationTotalMap[location] || zone["Crime quantity"];
+    const location = zone["Crime Location"] || "Unknown";
+    const totalLocationQuantity = locationTotalMap[location] || zone["Crime quantity"] || 0;
     
     // Use TOTAL location quantity for risk level, not individual crime quantity
     const risk = getRiskLevel(totalLocationQuantity);
@@ -283,14 +293,14 @@ export const enhanceZones = (zones) => {
       id: `${location}-${zone["Crime Type"]}-${zone["Crime date"]}-${zone["Crime period"]}`,
       main_area: location,
       sub_area: location,
-      type: zone["Crime Type"],
-      quantity: zone["Crime quantity"],
+      type: zone["Crime Type"] || "অন্যান্য",
+      quantity: zone["Crime quantity"] || 0,
       totalLocationQuantity: totalLocationQuantity, // Add total for reference
       location: [zone.latitude, zone.longitude],
-      date: zone["Crime date"],
+      date: zone["Crime date"] || "Unknown",
       dateObj: date,
       period: zone["Crime period"] || "অজানা",
-      confidence: zone.confidence,
+      confidence: zone.confidence || 0.5,
       typeConfig: getTypeConfig(zone["Crime Type"]),
       risk: risk,
       riskLevel: risk.label,
@@ -301,15 +311,22 @@ export const enhanceZones = (zones) => {
 };
 
 export const getUniqueLocations = (zones) => {
+  if (!zones || zones.length === 0) return [];
   const locations = new Set();
-  zones.forEach(zone => locations.add(zone["Crime Location"]));
+  zones.forEach(zone => {
+    if (zone["Crime Location"]) {
+      locations.add(zone["Crime Location"]);
+    }
+  });
   return Array.from(locations).sort();
 };
 
 export const getCrimeTypeBreakdown = (zones) => {
+  if (!zones || zones.length === 0) return {};
+  
   const breakdown = {};
   zones.forEach(zone => {
-    const type = zone["Crime Type"];
+    const type = zone["Crime Type"] || "অন্যান্য";
     if (!breakdown[type]) {
       breakdown[type] = {
         count: 0,
@@ -318,8 +335,10 @@ export const getCrimeTypeBreakdown = (zones) => {
       };
     }
     breakdown[type].count++;
-    breakdown[type].totalQuantity += zone["Crime quantity"];
-    breakdown[type].locations.add(zone["Crime Location"]);
+    breakdown[type].totalQuantity += zone["Crime quantity"] || 0;
+    if (zone["Crime Location"]) {
+      breakdown[type].locations.add(zone["Crime Location"]);
+    }
   });
   
   Object.keys(breakdown).forEach(key => {

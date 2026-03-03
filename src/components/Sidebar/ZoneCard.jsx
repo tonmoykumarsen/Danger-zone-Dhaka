@@ -1,10 +1,13 @@
+// components/Sidebar/ZoneCard.jsx
 import React, { useState } from "react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useTheme } from "../../context/ThemeContext";
 import { formatBengaliDate } from "../../utils/helpers";
 import "./ZoneCard.css";
 
 const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
-  const { language } = useLanguage(); // Only use language, not t
+  const { language } = useLanguage();
+  const { colors } = useTheme();
   const [hovered, setHovered] = useState(false);
   const typeConfig = zone.typeConfig;
   const risk = zone.risk;
@@ -33,37 +36,37 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
     if (risk.label === "সবচেয়ে ঝুঁকিপূর্ণ" || risk.label === "Critical") {
       return {
         ...baseStyle,
-        background: "#ff2d2d22",
-        color: "#ff2d2d",
-        borderColor: "#ff2d2d44"
+        background: `${colors.risk.critical}22`,
+        color: colors.risk.critical,
+        borderColor: `${colors.risk.critical}44`
       };
     } else if (risk.label === "উচ্চ ঝুঁকি" || risk.label === "High Risk") {
       return {
         ...baseStyle,
-        background: "#ff6b1a22",
-        color: "#ff6b1a",
-        borderColor: "#ff6b1a44"
+        background: `${colors.risk.high}22`,
+        color: colors.risk.high,
+        borderColor: `${colors.risk.high}44`
       };
     } else if (risk.label === "মাঝারি ঝুঁকি" || risk.label === "Medium Risk") {
       return {
         ...baseStyle,
-        background: "#f0a50022",
-        color: "#f0a500",
-        borderColor: "#f0a50044"
+        background: `${colors.risk.medium}22`,
+        color: colors.risk.medium,
+        borderColor: `${colors.risk.medium}44`
       };
     } else if (risk.label === "নিম্ন ঝুঁকি" || risk.label === "Low Risk") {
       return {
         ...baseStyle,
-        background: "#22c55e22",
-        color: "#22c55e",
-        borderColor: "#22c55e44"
+        background: `${colors.risk.low}22`,
+        color: colors.risk.low,
+        borderColor: `${colors.risk.low}44`
       };
     } else {
       return {
         ...baseStyle,
-        background: "#3b82f622",
-        color: "#3b82f6",
-        borderColor: "#3b82f644"
+        background: `${colors.risk.normal}22`,
+        color: colors.risk.normal,
+        borderColor: `${colors.risk.normal}44`
       };
     }
   };
@@ -93,17 +96,24 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
       style={{
         borderLeftColor: typeConfig.color,
         boxShadow: active ? `0 0 14px ${typeConfig.color}44` : 'none',
+        background: colors.surface,
+        border: `1px solid ${colors.border}`,
+        borderLeftWidth: '4px',
+        borderLeftStyle: 'solid',
+        borderLeftColor: typeConfig.color,
       }}
     >
       <div className="zone-card-header">
         <div className="zone-title">
-          <h4>{zone.main_area}</h4>
-          <span className="sub-area">{zone.main_area}</span>
+          <h4 style={{ color: colors.text.primary }}>{zone.main_area}</h4>
+          <span className="sub-area" style={{ color: colors.text.muted }}>{zone.main_area}</span>
         </div>
         
         <div className="zone-quantity" style={{ color: typeConfig.color }}>
           <span className="quantity-number">{zone.quantity}</span>
-          <span className="quantity-label">{language === 'bn' ? 'টি মামলা' : 'cases'}</span>
+          <span className="quantity-label" style={{ color: colors.text.muted }}>
+            {language === 'bn' ? 'টি মামলা' : 'cases'}
+          </span>
         </div>
       </div>
 
@@ -121,7 +131,7 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
         </span>
       </div>
 
-      <div className="zone-meta">
+      <div className="zone-meta" style={{ color: colors.text.muted }}>
         <span>{zone.period}</span>
         <span>•</span>
         <span>{(zone.confidence * 100).toFixed(1)}%</span>
@@ -130,16 +140,16 @@ const ZoneCard = ({ zone, index, active, onClick, onHover }) => {
       </div>
 
       {isHighlighted && (
-        <div className="zone-details">
-          <div className="detail-row">
+        <div className="zone-details" style={{ borderTopColor: colors.border }}>
+          <div className="detail-row" style={{ color: colors.text.secondary }}>
             <span>📅 {formatBengaliDate(zone.date)}</span>
             <span>⏰ {zone.period}</span>
           </div>
-          <div className="detail-row">
+          <div className="detail-row" style={{ color: colors.text.secondary }}>
             <span>📍 {language === 'bn' ? 'অক্ষাংশ' : 'Lat'}: {zone.location[0].toFixed(4)}</span>
             <span>📌 {language === 'bn' ? 'দ্রাঘিমা' : 'Lng'}: {zone.location[1].toFixed(4)}</span>
           </div>
-          <div className="detail-hint">
+          <div className="detail-hint" style={{ color: colors.text.muted, background: colors.surface2 }}>
             {language === 'bn' ? '👆 মানচিত্রে দেখতে ক্লিক করুন' : '👆 Click to view on map'}
           </div>
         </div>

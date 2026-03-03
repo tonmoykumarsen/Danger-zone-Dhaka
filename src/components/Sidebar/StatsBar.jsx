@@ -1,38 +1,45 @@
+// components/Sidebar/StatsBar.jsx
 import React from "react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useTheme } from "../../context/ThemeContext";
 import { getStatistics } from "../../utils/helpers";
 
-const StatItem = ({ label, value, color }) => (
-  <div style={{
-    background: "#0f0f1a",
-    border: `1px solid ${color}33`,
-    borderRadius: 7,
-    padding: "7px 4px",
-    textAlign: "center"
-  }}>
+const StatItem = ({ label, value, color }) => {
+  const { colors } = useTheme();
+  
+  return (
     <div style={{
-      fontFamily: "'Bebas Neue',cursive",
-      fontSize: 20,
-      lineHeight: 1,
-      color: color,
-      textShadow: `0 0 10px ${color}88`
+      background: colors.surface,
+      border: `1px solid ${color}33`,
+      borderRadius: 7,
+      padding: "7px 4px",
+      textAlign: "center"
     }}>
-      {value}
+      <div style={{
+        fontFamily: "'Bebas Neue',cursive",
+        fontSize: 20,
+        lineHeight: 1,
+        color: color,
+        textShadow: `0 0 10px ${color}88`
+      }}>
+        {value}
+      </div>
+      <div style={{
+        fontSize: 8.5,
+        color: colors.text.muted,
+        textTransform: "uppercase",
+        letterSpacing: "0.08em",
+        marginTop: 3
+      }}>
+        {label}
+      </div>
     </div>
-    <div style={{
-      fontSize: 8.5,
-      color: "#475569",
-      textTransform: "uppercase",
-      letterSpacing: "0.08em",
-      marginTop: 3
-    }}>
-      {label}
-    </div>
-  </div>
-);
+  );
+};
 
 const RiskLevelIndicator = ({ riskCounts }) => {
   const { t } = useLanguage();
+  const { colors } = useTheme();
   
   const counts = riskCounts || {
     critical: 0,
@@ -43,23 +50,23 @@ const RiskLevelIndicator = ({ riskCounts }) => {
   };
   
   const riskItems = [
-    { label: t('critical'), value: counts.critical, color: "#ff2d2d", emoji: "🔥" },
-    { label: t('high'), value: counts.high, color: "#ff6b1a", emoji: "⚠️" },
-    { label: t('medium'), value: counts.medium, color: "#f0a500", emoji: "⚡" },
-    { label: t('low'), value: counts.low, color: "#22c55e", emoji: "✅" },
-    { label: t('normal'), value: counts.normal, color: "#3b82f6", emoji: "ℹ️" }
+    { label: t('critical'), value: counts.critical, color: colors.risk.critical, emoji: "🔥" },
+    { label: t('high'), value: counts.high, color: colors.risk.high, emoji: "⚠️" },
+    { label: t('medium'), value: counts.medium, color: colors.risk.medium, emoji: "⚡" },
+    { label: t('low'), value: counts.low, color: colors.risk.low, emoji: "✅" },
+    { label: t('normal'), value: counts.normal, color: colors.risk.normal, emoji: "ℹ️" }
   ];
 
   return (
     <div style={{
-      background: "#0f0f1a",
+      background: colors.surface,
       borderRadius: 7,
       padding: "10px",
       marginTop: "10px"
     }}>
       <div style={{
         fontSize: 9,
-        color: "#94a3b8",
+        color: colors.text.secondary,
         textTransform: "uppercase",
         letterSpacing: "0.1em",
         marginBottom: "8px",
@@ -82,7 +89,7 @@ const RiskLevelIndicator = ({ riskCounts }) => {
             <span>{item.emoji}</span>
             <span>{item.label}</span>
           </span>
-          <span style={{ color: "#f1f5f9", fontWeight: 600 }}>{item.value}</span>
+          <span style={{ color: colors.text.primary, fontWeight: 600 }}>{item.value}</span>
         </div>
       ))}
     </div>
@@ -91,20 +98,21 @@ const RiskLevelIndicator = ({ riskCounts }) => {
 
 const HotspotIndicator = ({ hotspot }) => {
   const { t } = useLanguage();
+  const { colors } = useTheme();
   
   if (!hotspot) return null;
 
   return (
     <div style={{
-      background: "#1a000a",
-      border: "1px solid #ff2d2d2a",
+      background: colors.accent.red + '11',
+      border: `1px solid ${colors.accent.red}2a`,
       borderRadius: 7,
       padding: "10px",
       marginTop: "10px"
     }}>
       <div style={{
         fontSize: 9,
-        color: "#94a3b8",
+        color: colors.text.secondary,
         textTransform: "uppercase",
         letterSpacing: "0.1em",
         marginBottom: "8px",
@@ -122,13 +130,13 @@ const HotspotIndicator = ({ hotspot }) => {
         alignItems: "center"
       }}>
         <div>
-          <div style={{ fontSize: "13px", fontWeight: 600, color: "#f1f5f9" }}>
+          <div style={{ fontSize: "13px", fontWeight: 600, color: colors.text.primary }}>
             {hotspot.main_area}
           </div>
-          <div style={{ fontSize: "10px", color: "#64748b" }}>
+          <div style={{ fontSize: "10px", color: colors.text.muted }}>
             {hotspot.sub_area}
           </div>
-          <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "4px" }}>
+          <div style={{ fontSize: "10px", color: colors.text.secondary, marginTop: "4px" }}>
             {hotspot.period} • {hotspot.date}
           </div>
           <div style={{ fontSize: "9px", color: hotspot.risk.color, marginTop: "2px" }}>
@@ -137,8 +145,8 @@ const HotspotIndicator = ({ hotspot }) => {
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{
-            background: "#ff2d2d22",
-            color: "#ff2d2d",
+            background: colors.accent.red + '22',
+            color: colors.accent.red,
             padding: "4px 8px",
             borderRadius: "4px",
             fontSize: "14px",
@@ -154,6 +162,7 @@ const HotspotIndicator = ({ hotspot }) => {
 
 const StatsBar = ({ zones }) => {
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const stats = getStatistics(zones);
 
   const safeStats = {
@@ -174,13 +183,13 @@ const StatsBar = ({ zones }) => {
   };
 
   const statItems = [
-    { label: t('totalLocations'), value: safeStats.total, color: "#60a5fa" },
-    { label: t('murder'), value: safeStats.murders, color: "#ff2d2d" },
-    { label: t('rape'), value: safeStats.rape, color: "#ff6b1a" },
+    { label: t('totalLocations'), value: safeStats.total, color: colors.accent.blue },
+    { label: t('murder'), value: safeStats.murders, color: colors.accent.red },
+    { label: t('rape'), value: safeStats.rape, color: colors.risk.high },
     { label: t('robbery'), value: safeStats.robbery, color: "#ff4500" },
-    { label: t('kidnapping'), value: safeStats.kidnapping, color: "#f0a500" },
-    { label: t('drugs'), value: safeStats.drugs, color: "#22c55e" },
-    { label: t('others'), value: safeStats.others, color: "#6b7280" },
+    { label: t('kidnapping'), value: safeStats.kidnapping, color: colors.risk.medium },
+    { label: t('drugs'), value: safeStats.drugs, color: colors.risk.low },
+    { label: t('others'), value: safeStats.others, color: colors.text.muted },
   ];
 
   return (

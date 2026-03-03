@@ -1,6 +1,8 @@
+// src/components/Map/CrimeMap.jsx
 import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useTheme, THEMES } from "../../context/ThemeContext";
 import { BANGLADESH_CENTER, DEFAULT_ZOOM, TYPE_CONFIG } from "../../constants/config";
 import { formatBengaliDate } from "../../utils/helpers";
 import "../../styles/map.css";
@@ -15,11 +17,12 @@ L.Icon.Default.mergeOptions({
 
 // Free tile layers that don't require authentication
 const TILE_LAYERS = {
-  osm: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  cartoDark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+  // Light themes - using OSM standard light map
+  osmLight: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   cartoLight: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-  topo: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-  stamen: "https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg"
+  
+  // Dark themes
+  cartoDark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
 };
 
 // Custom marker icons for different crime types
@@ -43,83 +46,64 @@ const createCustomIcon = (typeConfig, quantity, isHovered = false) => {
 
 // Hover Modal Component
 const HoverModal = ({ zone, position }) => {
+  const { colors } = useTheme();
+  
   if (!zone || !position) return null;
 
   const typeConfig = zone.typeConfig;
   const risk = zone.risk;
 
-  // Get risk label based on language
-  const getRiskLabel = () => {
-    return risk.label;
-  };
-
   return (
     <div 
       className="hover-modal"
       style={{
+        position: 'fixed',
         left: position.x,
         top: position.y,
+        background: colors.surface,
+        border: `1px solid ${colors.border}`,
+        borderRadius: '8px',
+        padding: '12px',
+        boxShadow: colors.shadow,
+        zIndex: 2000,
+        minWidth: '250px',
+        transform: 'translate(-50%, -100%)',
+        marginTop: '-10px'
       }}
     >
-      <div className="modal-header" style={{ borderLeftColor: typeConfig.color }}>
-        <h3>{zone.main_area}</h3>
-        <span className="sub-area">{zone.main_area}</span>
+      <div style={{ borderLeft: `4px solid ${typeConfig.color}`, paddingLeft: '8px', marginBottom: '8px' }}>
+        <div style={{ fontWeight: 'bold', color: colors.text.primary }}>{zone.main_area}</div>
+        <div style={{ fontSize: '11px', color: colors.text.muted }}>{zone.sub_area}</div>
       </div>
       
-      <div className="modal-content">
-        <div className="modal-row">
-          <span className="modal-label">📍 Location</span>
-          <span className="modal-value">{zone.main_area}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11px' }}>
+        <div>
+          <div style={{ color: colors.text.muted }}>Type</div>
+          <div style={{ color: typeConfig.color, fontWeight: 600 }}>{typeConfig.icon} {typeConfig.badge}</div>
         </div>
-        
-        <div className="modal-row">
-          <span className="modal-label">🔫 Crime Type</span>
-          <span className="modal-value" style={{ color: typeConfig.color }}>
-            {typeConfig.icon} {typeConfig.badge}
-          </span>
+        <div>
+          <div style={{ color: colors.text.muted }}>Cases</div>
+          <div style={{ color: typeConfig.color, fontWeight: 'bold' }}>{zone.quantity}</div>
         </div>
-        
-        <div className="modal-row">
-          <span className="modal-label">📊 Cases</span>
-          <span className="modal-value cases">{zone.quantity}</span>
+        <div>
+          <div style={{ color: colors.text.muted }}>Risk</div>
+          <div style={{ color: risk.color }}>{risk.emoji} {risk.label}</div>
         </div>
-        
-        <div className="modal-row">
-          <span className="modal-label">⚠️ Risk Level</span>
-          <span className="modal-value" style={{ color: risk.color }}>
-            {risk.emoji} {getRiskLabel()}
-          </span>
-        </div>
-        
-        <div className="modal-row">
-          <span className="modal-label">📅 Date</span>
-          <span className="modal-value">{formatBengaliDate(zone.date)}</span>
-        </div>
-        
-        <div className="modal-row">
-          <span className="modal-label">⏰ Time</span>
-          <span className="modal-value">{zone.period || "Unknown"}</span>
-        </div>
-        
-        <div className="modal-row">
-          <span className="modal-label">🎯 Confidence</span>
-          <span className="modal-value">{(zone.confidence * 100).toFixed(1)}%</span>
-        </div>
-        
-        <div className="modal-coordinates">
-          <span>Lat: {zone.location[0].toFixed(4)}</span>
-          <span>Lng: {zone.location[1].toFixed(4)}</span>
+        <div>
+          <div style={{ color: colors.text.muted }}>Time</div>
+          <div style={{ color: colors.text.primary }}>{zone.period}</div>
         </div>
       </div>
       
-      <div className="modal-footer">
-        <span className="modal-action">Click for details →</span>
+      <div style={{ marginTop: '8px', fontSize: '10px', color: colors.text.muted, borderTop: `1px solid ${colors.border}`, paddingTop: '4px' }}>
+        Click for details →
       </div>
     </div>
   );
 };
 
 const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, isModalOpen = false }) => {
+  const { theme, colors } = useTheme();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
@@ -129,25 +113,19 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
+    // Create map instance
     mapInstanceRef.current = L.map(mapRef.current, {
       center: BANGLADESH_CENTER,
       zoom: DEFAULT_ZOOM,
       zoomControl: false,
       fadeAnimation: true,
       markerZoomAnimation: true,
-      dragging: !isModalOpen,
-      scrollWheelZoom: !isModalOpen,
-      doubleClickZoom: !isModalOpen,
-      boxZoom: !isModalOpen,
-      keyboard: !isModalOpen,
     });
 
-    // Use CartoDB dark theme (free, no authentication required)
-    L.tileLayer(TILE_LAYERS.cartoDark, {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    // Always start with light theme map
+    L.tileLayer(TILE_LAYERS.osmLight, {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19,
-      subdomains: 'abcd',
-      noWrap: true
     }).addTo(mapInstanceRef.current);
 
     // Add scale control
@@ -159,7 +137,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
         mapInstanceRef.current = null;
       }
     };
-  }, [isModalOpen]);
+  }, []);
 
   // Update map interactions when modal state changes
   useEffect(() => {
@@ -194,7 +172,6 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
       if (!zone || !zone.location) return;
       
       const typeConfig = zone.typeConfig;
-      const risk = zone.risk;
 
       // Create custom icon
       const icon = createCustomIcon(typeConfig, zone.quantity);
@@ -209,8 +186,8 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
       markersRef.current[index] = marker;
 
       // Add hover events
-      marker.on('mouseover', () => {
-        if (!isModalOpen) { // Only allow hover when modal is closed
+      marker.on('mouseover', (e) => {
+        if (!isModalOpen) {
           onZoneHover(zone);
           marker.setZIndexOffset(2000);
           
@@ -219,7 +196,7 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
           setHoverModal({
             visible: true,
             zone: zone,
-            position: { x: point.x, y: point.y - 50 }
+            position: { x: point.x, y: point.y }
           });
         }
       });
@@ -231,79 +208,47 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
       });
       
       marker.on('click', () => {
-        if (!isModalOpen) { // Only allow click when modal is closed
+        if (!isModalOpen) {
           onZoneClick(index);
-          marker.openPopup();
         }
       });
 
-      // Create detailed popup content
+      // Create popup
       const popupContent = `
-        <div class="crime-popup">
-          <div class="popup-header" style="border-left-color: ${typeConfig.color}">
-            <h3>${zone.main_area}</h3>
-            <span class="sub-area">${zone.main_area}</span>
+        <div style="font-family: 'DM Sans', sans-serif; min-width: 250px;">
+          <div style="border-bottom: 2px solid ${typeConfig.color}; padding: 8px; background: ${colors.surface};">
+            <div style="font-weight: bold; font-size: 14px; color: ${colors.text.primary};">${zone.main_area}</div>
+            <div style="font-size: 11px; color: ${colors.text.muted};">${zone.main_area}</div>
           </div>
-          <div class="popup-stats">
-            <div class="stat-item">
-              <span class="stat-label">Crime Type</span>
-              <span class="stat-value" style="color: ${typeConfig.color}">
-                ${typeConfig.icon} ${typeConfig.badge}
-              </span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Total Cases</span>
-              <span class="stat-value cases">${zone.quantity}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Risk Level</span>
-              <span class="stat-value" style="color: ${risk.color}">
-                ${risk.emoji} ${risk.label}
-              </span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Time</span>
-              <span class="stat-value">${zone.period || "Unknown"}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Confidence</span>
-              <span class="stat-value">${(zone.confidence * 100).toFixed(1)}%</span>
-            </div>
-          </div>
-          <div class="popup-details">
-            <div class="detail-section">
-              <div class="detail-title">📍 Location Details</div>
-              <div class="detail-grid">
-                <div>Latitude: ${zone.location[0].toFixed(4)}</div>
-                <div>Longitude: ${zone.location[1].toFixed(4)}</div>
-                <div>District: ${zone.main_area}</div>
-                <div>Date: ${formatBengaliDate(zone.date)}</div>
-                <div>Time: ${zone.period || "Unknown"}</div>
+          <div style="padding: 8px; background: ${colors.surface2};">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div>
+                <div style="font-size: 9px; color: ${colors.text.muted};">Type</div>
+                <div style="color: ${typeConfig.color}; font-weight: 600;">${typeConfig.icon} ${typeConfig.badge}</div>
               </div>
-            </div>
-            <div class="detail-section">
-              <div class="detail-title">📊 Statistics</div>
-              <div class="detail-grid">
-                <div>Monthly Avg: ${(zone.quantity / 12).toFixed(1)}</div>
-                <div>Trend: ${zone.quantity > 20 ? '↑ Rising' : '→ Stable'}</div>
-                <div>Severity: ${zone.quantity > 50 ? 'Critical' : zone.quantity > 20 ? 'High' : zone.quantity > 10 ? 'Medium' : 'Low'}</div>
-                <div>Patrol Priority: ${zone.quantity > 50 ? 'Highest' : zone.quantity > 20 ? 'High' : zone.quantity > 10 ? 'Medium' : 'Low'}</div>
+              <div>
+                <div style="font-size: 9px; color: ${colors.text.muted};">Cases</div>
+                <div style="color: ${typeConfig.color}; font-weight: bold;">${zone.quantity}</div>
+              </div>
+              <div>
+                <div style="font-size: 9px; color: ${colors.text.muted};">Risk</div>
+                <div style="color: ${zone.risk.color};">${zone.risk.emoji} ${zone.risk.label}</div>
+              </div>
+              <div>
+                <div style="font-size: 9px; color: ${colors.text.muted};">Time</div>
+                <div style="color: ${colors.text.primary};">${zone.period}</div>
               </div>
             </div>
           </div>
-          <div class="popup-footer">
-            <span class="timestamp">Last Updated: ${formatBengaliDate(zone.date)}</span>
-            <span class="badge-critical" style="background-color: ${typeConfig.color}22; color: ${typeConfig.color}">
-              ${typeConfig.badge} ALERT
-            </span>
+          <div style="padding: 8px; background: ${colors.surface}; border-top: 1px solid ${colors.border};">
+            <div style="font-size: 9px; color: ${colors.text.muted};">📍 ${zone.location[0].toFixed(4)}, ${zone.location[1].toFixed(4)}</div>
           </div>
         </div>
       `;
 
       marker.bindPopup(popupContent, {
-        className: 'custom-popup enhanced-popup',
-        maxWidth: 380,
-        minWidth: 320,
+        className: 'custom-popup',
+        maxWidth: 300,
       });
     });
 
@@ -312,10 +257,10 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
       const validZones = zones.filter(z => z && z.location);
       if (validZones.length > 0) {
         const bounds = L.latLngBounds(validZones.map(z => z.location));
-        mapInstanceRef.current.fitBounds(bounds, { padding: [60, 60], animate: true });
+        mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], animate: true });
       }
     }
-  }, [zones, onZoneHover, onZoneClick, isModalOpen]);
+  }, [zones, onZoneHover, onZoneClick, isModalOpen, colors]);
 
   // Handle active zone
   useEffect(() => {
@@ -325,81 +270,35 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
     }
   }, [activeZone, zones, isModalOpen]);
 
-  // Handle hovered zone
-  useEffect(() => {
-    if (hoveredZone !== null && markersRef.current[hoveredZone] && !isModalOpen) {
-      markersRef.current[hoveredZone].setZIndexOffset(2000);
-    }
-  }, [hoveredZone, isModalOpen]);
-
-  // Calculate total quantity per location for accurate risk assessment
+  // Calculate stats
   const calculateLocationStats = () => {
     if (!zones || zones.length === 0) {
-      return {
-        totalLocations: 0,
-        totalCases: 0,
-        criticalCount: 0,
-        highCount: 0,
-        mediumCount: 0,
-        lowCount: 0,
-        normalCount: 0,
-        highRiskCount: 0
-      };
+      return { totalLocations: 0, totalCases: 0, highRiskCount: 0 };
     }
 
-    // Group by location and sum quantities
     const locationMap = new Map();
+    let totalCases = 0;
+    let highRiskCount = 0;
     
     zones.forEach(zone => {
       const location = zone.main_area;
       const quantity = zone.quantity || 0;
+      totalCases += quantity;
       
       if (!locationMap.has(location)) {
-        locationMap.set(location, {
-          totalQuantity: 0,
-          crimes: []
-        });
+        locationMap.set(location, { totalQuantity: 0 });
       }
-      
-      const locationData = locationMap.get(location);
-      locationData.totalQuantity += quantity;
-      locationData.crimes.push(zone);
+      locationMap.get(location).totalQuantity += quantity;
     });
 
-    // Calculate stats
-    let totalCases = 0;
-    let criticalCount = 0;
-    let highCount = 0;
-    let mediumCount = 0;
-    let lowCount = 0;
-    let normalCount = 0;
-
-    locationMap.forEach((data) => {
-      totalCases += data.totalQuantity;
-      
-      // Determine risk level based on TOTAL quantity
-      if (data.totalQuantity >= 50) {
-        criticalCount++;
-      } else if (data.totalQuantity >= 20) {
-        highCount++;
-      } else if (data.totalQuantity >= 10) {
-        mediumCount++;
-      } else if (data.totalQuantity >= 5) {
-        lowCount++;
-      } else {
-        normalCount++;
-      }
+    locationMap.forEach(data => {
+      if (data.totalQuantity >= 20) highRiskCount++;
     });
 
     return {
       totalLocations: locationMap.size,
-      totalCases: totalCases,
-      criticalCount: criticalCount,
-      highCount: highCount,
-      mediumCount: mediumCount,
-      lowCount: lowCount,
-      normalCount: normalCount,
-      highRiskCount: criticalCount + highCount
+      totalCases,
+      highRiskCount
     };
   };
 
@@ -409,99 +308,55 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
       
-      {/* Hover Modal - only show when main modal is closed */}
+      {/* Hover Modal */}
       {!isModalOpen && hoverModal.visible && <HoverModal zone={hoverModal.zone} position={hoverModal.position} />}
       
-      {/* Map Legend */}
-      <div className="map-legend">
-        <h4>Crime Types</h4>
-        <div className="legend-items">
-          {Object.entries(TYPE_CONFIG).map(([key, config]) => (
-            <div key={key} className="legend-item">
-              <div className="legend-marker" style={{ backgroundColor: config.color }}>
-                <span>{config.icon}</span>
-              </div>
-              <div className="legend-info">
-                <span className="legend-type">{config.badge}</span>
-                <span className="legend-desc">{config.description}</span>
-                <span className="legend-count">
-                  {zones?.filter(z => z?.type === key).length || 0} crimes
-                </span>
-              </div>
+      {/* Map Legend - Simple and clean */}
+      <div style={{
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        zIndex: 1000,
+        background: 'white',
+        borderRadius: '8px',
+        padding: '12px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        border: '1px solid #e2e8f0',
+        maxWidth: '220px',
+      }}>
+        <h4 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#1e293b' }}>Crime Types</h4>
+        {Object.entries(TYPE_CONFIG).map(([key, config]) => (
+          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: config.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '10px' }}>
+              {config.icon}
             </div>
-          ))}
-        </div>
-        
-        {/* Risk Level Legend */}
-        <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #1e1e30' }}>
-          <h4 style={{ fontSize: '11px', marginBottom: '8px' }}>Risk Levels (per location)</h4>
-          <div className="risk-legend-items">
-            <div className="risk-legend-item">
-              <span className="risk-dot" style={{ backgroundColor: '#ff2d2d' }}>🔥</span>
-              <span>Critical (50+ cases)</span>
-              <span style={{ color: '#ff2d2d', fontWeight: 'bold' }}>{stats.criticalCount}</span>
-            </div>
-            <div className="risk-legend-item">
-              <span className="risk-dot" style={{ backgroundColor: '#ff6b1a' }}>⚠️</span>
-              <span>High (20-49 cases)</span>
-              <span style={{ color: '#ff6b1a', fontWeight: 'bold' }}>{stats.highCount}</span>
-            </div>
-            <div className="risk-legend-item">
-              <span className="risk-dot" style={{ backgroundColor: '#f0a500' }}>⚡</span>
-              <span>Medium (10-19 cases)</span>
-              <span style={{ color: '#f0a500', fontWeight: 'bold' }}>{stats.mediumCount}</span>
-            </div>
-            <div className="risk-legend-item">
-              <span className="risk-dot" style={{ backgroundColor: '#22c55e' }}>✅</span>
-              <span>Low (5-9 cases)</span>
-              <span style={{ color: '#22c55e', fontWeight: 'bold' }}>{stats.lowCount}</span>
-            </div>
-            <div className="risk-legend-item">
-              <span className="risk-dot" style={{ backgroundColor: '#3b82f6' }}>ℹ️</span>
-              <span>Normal (0-4 cases)</span>
-              <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>{stats.normalCount}</span>
+            <div style={{ fontSize: '11px', color: '#334155' }}>{config.badge}</div>
+            <div style={{ fontSize: '10px', color: '#64748b', marginLeft: 'auto' }}>
+              {zones?.filter(z => z?.type === key).length || 0}
             </div>
           </div>
-        </div>
-        
-        <div className="legend-note" style={{ marginTop: '12px' }}>
-          <span>🔵 Marker size = case count</span>
-          <span>🖱️ Hover for quick info</span>
+        ))}
+        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0', fontSize: '10px', color: '#64748b' }}>
+          <div>🔵 Marker size = case count</div>
+          <div>🖱️ Hover for details</div>
         </div>
       </div>
 
       {/* Map Controls */}
-      <div className="map-controls">
-        <button 
-          className="map-control-btn" 
-          onClick={() => mapInstanceRef.current?.setView(BANGLADESH_CENTER, DEFAULT_ZOOM)} 
-          title="Reset view"
-          disabled={isModalOpen}
-          style={{ opacity: isModalOpen ? 0.5 : 1, cursor: isModalOpen ? 'not-allowed' : 'pointer' }}
-        >
-          <span className="btn-icon">🏠</span>
-        </button>
-        <button 
-          className="map-control-btn" 
-          onClick={() => mapInstanceRef.current?.zoomIn()} 
-          title="Zoom in"
-          disabled={isModalOpen}
-          style={{ opacity: isModalOpen ? 0.5 : 1, cursor: isModalOpen ? 'not-allowed' : 'pointer' }}
-        >
-          <span className="btn-icon">+</span>
-        </button>
-        <button 
-          className="map-control-btn" 
-          onClick={() => mapInstanceRef.current?.zoomOut()} 
-          title="Zoom out"
-          disabled={isModalOpen}
-          style={{ opacity: isModalOpen ? 0.5 : 1, cursor: isModalOpen ? 'not-allowed' : 'pointer' }}
-        >
-          <span className="btn-icon">−</span>
-        </button>
-        <button 
-          className="map-control-btn" 
-          onClick={() => {
+      <div style={{
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+      }}>
+        {[
+          { icon: '🏠', action: () => mapInstanceRef.current?.setView(BANGLADESH_CENTER, DEFAULT_ZOOM), title: 'Reset view' },
+          { icon: '+', action: () => mapInstanceRef.current?.zoomIn(), title: 'Zoom in' },
+          { icon: '−', action: () => mapInstanceRef.current?.zoomOut(), title: 'Zoom out' },
+          { icon: '⌂', action: () => {
             if (zones?.length > 0) {
               const validZones = zones.filter(z => z && z.location);
               if (validZones.length > 0) {
@@ -509,61 +364,68 @@ const CrimeMap = ({ zones, activeZone, hoveredZone, onZoneHover, onZoneClick, is
                 mapInstanceRef.current?.fitBounds(bounds, { padding: [50, 50] });
               }
             }
-          }} 
-          title="Show all markers"
-          disabled={isModalOpen}
-          style={{ opacity: isModalOpen ? 0.5 : 1, cursor: isModalOpen ? 'not-allowed' : 'pointer' }}
-        >
-          <span className="btn-icon">⌂</span>
-        </button>
+          }, title: 'Show all' }
+        ].map((btn, idx) => (
+          <button
+            key={idx}
+            onClick={btn.action}
+            title={btn.title}
+            disabled={isModalOpen}
+            style={{
+              width: '40px',
+              height: '40px',
+              background: 'white',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              color: '#1e293b',
+              fontSize: '18px',
+              cursor: isModalOpen ? 'not-allowed' : 'pointer',
+              opacity: isModalOpen ? 0.5 : 1,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              if (!isModalOpen) e.currentTarget.style.background = '#f8fafc';
+            }}
+            onMouseLeave={(e) => {
+              if (!isModalOpen) e.currentTarget.style.background = 'white';
+            }}
+          >
+            {btn.icon}
+          </button>
+        ))}
       </div>
 
-      {/* Crime Stats Overlay */}
-      <div className="stats-overlay">
-        <div className="stats-item">
-          <span className="stats-label">Total Locations</span>
-          <span className="stats-value">{stats.totalLocations}</span>
+      {/* Stats Overlay */}
+      <div style={{
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        zIndex: 1000,
+        background: 'white',
+        borderRadius: '8px',
+        padding: '12px 16px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        border: '1px solid #e2e8f0',
+        display: 'flex',
+        gap: '20px',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '10px', color: '#64748b' }}>Locations</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>{stats.totalLocations}</div>
         </div>
-        <div className="stats-item">
-          <span className="stats-label">Total Cases</span>
-          <span className="stats-value">{stats.totalCases}</span>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '10px', color: '#64748b' }}>Total Cases</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>{stats.totalCases}</div>
         </div>
-        <div className="stats-item">
-          <span className="stats-label">High Risk</span>
-          <span className="stats-value" style={{ color: '#ff2d2d' }}>
-            {stats.highRiskCount}
-          </span>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '10px', color: '#64748b' }}>High Risk</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#dc2626' }}>{stats.highRiskCount}</div>
         </div>
       </div>
-
-      {/* Add CSS for risk legend */}
-      <style>
-        {`
-          .risk-legend-items {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-          }
-          .risk-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 10px;
-            color: #94a3b8;
-            justify-content: space-between;
-          }
-          .risk-dot {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: white;
-          }
-        `}
-      </style>
     </div>
   );
 };
